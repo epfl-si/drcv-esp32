@@ -8,6 +8,11 @@
 #include <WiFiClientSecure.h>
 #include "secrets.h"  // Include the secrets.h file for WiFi credentials
 
+#include "xml_parser.h" // Include my xml parser method
+#include "split.h" // Include my Split method
+#include "event.h" // Include Event custom class
+#include "datetime.h" // Include DateTime custom class
+
 #include <Base64.h>
 #include <ArduinoHttpClient.h>
 
@@ -32,6 +37,7 @@ int endY = 300;    // End vertical axis
 
 const char *Loading_Message = "Wifi Connection in progress, please wait...";
 String APIText = "Default";
+String response = "Default";
 
 
 String xmlRequest = R"rawliteral(<?xml version="1.0" encoding="utf-8"?>
@@ -135,6 +141,38 @@ void setup() {
   Serial.begin(115200);
   delay(10);
   xmlRequest.replace("{email}", API_EMAIL_TARGET); // Replace the {email} with the real email target in secrets.h
+
+
+  // Initialization settings, executed only once when the program starts
+  // Configure pin 7 as output mode and set it to high level to activate the screen power
+  pinMode(7, OUTPUT);            // Set pin 7 as output mode
+  digitalWrite(7, HIGH);         // Set pin 7 to high level, activating the screen power
+
+  EPD_GPIOInit();                // Initialize the GPIO pin configuration for the EPD e-ink screen
+
+  // The SPI initialization part is commented out
+  // SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
+  // SPI.begin ();
+
+  EPD_Clear();                   // Clear the screen content, restoring it to its default state
+  Paint_NewImage(Image_BW, EPD_W, EPD_H, 0, WHITE); // Create a new image buffer, size EPD_W x EPD_H, background color white
+  EPD_Full(WHITE);              // Fill the entire canvas with white
+  EPD_Display_Part(0, 0, EPD_W, EPD_H, Image_BW); // Display the image stored in the Image_BW array
+
+  EPD_Init_Fast(Fast_Seconds_1_5s); // Quickly initialize the EPD screen, setting it to 1.5 second fast mode
+
+  Part_Text_Display(Loading_Message, startX, startY, fontSize, BLACK, endX, endY);
+
+  EPD_Display_Fast(Image_BW); // Quickly display the image stored in the Image_BW array
+
+  EPD_Sleep();                // Set the screen to sleep mode to save power
+
+  
+
+
+
+
+
   Serial.println();
   Serial.print("Connecting to network: ");
   Serial.println(ssid);
@@ -166,33 +204,13 @@ void setup() {
 
 
 
-  
 
-  // Initialization settings, executed only once when the program starts
-  // Configure pin 7 as output mode and set it to high level to activate the screen power
-  pinMode(7, OUTPUT);            // Set pin 7 as output mode
-  digitalWrite(7, HIGH);         // Set pin 7 to high level, activating the screen power
 
-  EPD_GPIOInit();                // Initialize the GPIO pin configuration for the EPD e-ink screen
 
-  // The SPI initialization part is commented out
-  // SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
-  // SPI.begin ();
 
-  EPD_Clear();                   // Clear the screen content, restoring it to its default state
-  Paint_NewImage(Image_BW, EPD_W, EPD_H, 0, WHITE); // Create a new image buffer, size EPD_W x EPD_H, background color white
-  EPD_Full(WHITE);              // Fill the entire canvas with white
-  EPD_Display_Part(0, 0, EPD_W, EPD_H, Image_BW); // Display the image stored in the Image_BW array
 
-  EPD_Init_Fast(Fast_Seconds_1_5s); // Quickly initialize the EPD screen, setting it to 1.5 second fast mode
 
-  Part_Text_Display(Loading_Message, startX, startY, fontSize, BLACK, endX, endY);
 
-  EPD_Display_Fast(Image_BW); // Quickly display the image stored in the Image_BW array
-
-  EPD_Sleep();                // Set the screen to sleep mode to save power
-
-  delay(5000);                // Wait for 5000 milliseconds (5 seconds), allowing the screen to stay in sleep mode for some time
 
   clear_all();               // Call the clear_all function to clear the screen content
 }
@@ -225,15 +243,69 @@ void loop() {
 
   if (httpResponseCode == 200) {
     String body = https.getString();
-    Serial.print("200 got: ");
-    Serial.println(body);
+//    Serial.print("200 got: ");
+//    Serial.println(body);
     APIText = body;
+    response = body;
+    int itemsLength = 0;
+    String* items = XMLParser(body, "<t:Items>", "</t:Items>", itemsLength);
+    int calendarItemLength = 0;
+    String* calendarItem = XMLParser(items[0], "<t:CalendarItem>", "</t:CalendarItem>", calendarItemLength);
+    Event *eventList[calendarItemLength];
+    for (int i = 0; i < calendarItemLength; i++){
+//      Serial.print(i);
+//      Serial.print(" : : ");
+//      Serial.print(XMLGetter(calendarItem[i], "<t:Subject>", "</t:Subject>"));
+//      Serial.print(", ");
+//      Serial.print(XMLGetter(calendarItem[i], "<t:Start>", "</t:Start>"));
+//      Serial.print(", ");
+//      Serial.println(XMLGetter(calendarItem[i], "<t:End>", "</t:End>"));
+      eventList[i] = new Event(
+        XMLGetter(calendarItem[i], "<t:Subject>", "</t:Subject>"),
+        DateTime(XMLGetter(calendarItem[i], "<t:Start>", "</t:Start>")),
+        DateTime(XMLGetter(calendarItem[i], "<t:End>", "</t:End>"))
+      );
+    }
+    for (int j = 0; j < calendarItemLength; j++){
+      Serial.print(j);
+      Serial.print(" =>>> ");
+      Serial.println(eventList[j]->subject);
+      Serial.print((eventList[j]->startDateTime).hour);
+      Serial.print(":");
+      Serial.println((eventList[j]->startDateTime).minute);
+      Serial.print((eventList[j]->endDateTime).hour);
+      Serial.print(":");
+      Serial.println((eventList[j]->endDateTime).minute);
+    }
+
+    String test = "abc,def, g ,458;erà3.,.";
+    int splitLength = 0;
+    String* val = Split(test, ",", splitLength);
+    for (int k = 0; k < splitLength; k++){
+      Serial.print(k);
+      Serial.print(" =<<< ");
+      Serial.println(val[k]);
+    }
+
+    //2025-05-26T10:30:00
+    DateTime* date = new DateTime("2025-05-26T10:30:00");
+    Serial.println(date->year);
+    Serial.println(date->month);
+    Serial.println(date->day);
+
+    Serial.println(date->hour);
+    Serial.println(date->minute);
+    Serial.println(date->second);
   }
   else {
     Serial.print("Err: ");
     Serial.println(httpResponseCode);
     APIText = "Error check Serial";
+    response = "Error check Serial";
   }
+
+
+
 
 
   
