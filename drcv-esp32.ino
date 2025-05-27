@@ -1,4 +1,6 @@
 #include <WiFi.h>
+#include "time.h"
+
 #include <HTTPClient.h>
 //#include "esp_eap_client.h"
 #include "sdkconfig.h"
@@ -25,7 +27,19 @@
 #include "pic_scenario.h"   // Include the header file containing image data
 
 int counter = 0;
-const char *host = "https://api.midicix.com/word/random";  //external server domain for HTTP connection after authentication
+
+int autoRefreshSeconds = 60;
+
+// NTP Server settings
+const char* ntpServer = "pool.ntp.org";
+
+// Adjust for your timezone
+const long gmtOffset_sec = 7200;
+const int daylightOffset_sec = 0;
+
+struct tm timeinfo;
+
+DateTime* current_date = new DateTime("2025-05-26T10:30:00");
 
 uint8_t Image_BW[15000];    // Declare an array of 15000 bytes to store black and white image data
 
@@ -58,7 +72,7 @@ String xmlRequest = R"rawliteral(<?xml version="1.0" encoding="utf-8"?>
             <t:FieldURI FieldURI="calendar:End" />
           </t:AdditionalProperties>
         </m:ItemShape>
-        <m:CalendarView StartDate="2025-01-23T00:30:24.127Z" EndDate="2025-01-23T21:30:24.127Z" />
+        <m:CalendarView StartDate="{start}.000Z" EndDate="{end}T23:59:59Z" />
         <m:ParentFolderIds>
           <t:DistinguishedFolderId Id="calendar">
             <t:Mailbox>
@@ -130,6 +144,24 @@ void Part_Text_Display(const char* content, int startX, int startY, int fontSize
 
 
 
+bool isCurrentEvent(Event* event, DateTime* current_date){
+  return (current_date->hour >= (event->startDateTime).hour) ? 
+      (current_date->hour == (event->startDateTime).hour) ? 
+        (current_date->minute >= (event->startDateTime).minute) ?
+          (current_date->hour == (event->endDateTime).hour) ?
+            (current_date->minute <= (event->startDateTime).minute)
+            :
+            true
+          :
+          false
+        : 
+        (current_date->hour == (event->endDateTime).hour) ?
+          (current_date->minute <= (event->startDateTime).minute)
+          :
+          ((current_date->hour >= (event->startDateTime).hour) && (current_date->hour <= (event->endDateTime).hour))
+      :
+      false;
+}
 
 
 
@@ -202,16 +234,6 @@ void setup() {
   Serial.println(WiFi.localIP());  //print LAN IP
 
 
-
-
-
-
-
-
-
-
-
-
   clear_all();               // Call the clear_all function to clear the screen content
 }
 
@@ -231,9 +253,54 @@ void loop() {
       ESP.restart();
     }
   }
+  Serial.println("Connecting to NTP server: ");
+
+    // Configure NTP
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+
+
+
+  int retry = 0;
+  while (!getLocalTime(&timeinfo) && retry < 10) {
+    Serial.println("Waiting for time...");
+    delay(1000);
+    retry++;
+  }
+
+  if (retry == 10) {
+    Serial.println("Failed to get time from NTP.");
+  } else {
+    Serial.println("Time synced successfully!");
+    Serial.print("Date: ");
+    Serial.print(timeinfo.tm_year + 1900); Serial.print("-");
+    Serial.print(timeinfo.tm_mon + 1);     Serial.print("-");
+    Serial.print(timeinfo.tm_mday);        Serial.print("  ");
+  
+    Serial.print("Time: ");
+    Serial.print(timeinfo.tm_hour);   Serial.print(":");
+    Serial.print(timeinfo.tm_min);    Serial.print(":");
+    Serial.println(timeinfo.tm_sec);
+
+    char timeString[20];
+    strftime(timeString, sizeof(timeString), "%Y-%m-%dT%H:%M:%S", &timeinfo);
+    current_date = new DateTime(timeString);
+    Serial.print("Current time: ");
+    Serial.println(timeString);
+  }
+
+  char dateTimeString[20];
+  char dateString[20];
+  strftime(dateTimeString, sizeof(dateTimeString), "%Y-%m-%dT%H:%M:%S", &timeinfo);
+  strftime(dateString, sizeof(dateString), "%Y-%m-%d", &timeinfo);
+  current_date = new DateTime(dateTimeString);
+
+  xmlRequest.replace("{start}", dateTimeString); // Replace the {start} with the current datetime
+  xmlRequest.replace("{end}", dateString); // Replace the {end} with the current date
+  //xmlRequest.replace("{start}", "2025-01-23T00:30:24"); // Replace the {start} with the current datetime
+  //xmlRequest.replace("{end}", "2025-01-23"); // Replace the {end} with the current date
+
   Serial.print("Connecting to website: ");
   Serial.println(API_SERVICE_ENDPOINT);
-
 
   HTTPClient https;
   https.begin(API_SERVICE_ENDPOINT);
@@ -242,6 +309,7 @@ void loop() {
   int httpResponseCode = https.POST(xmlRequest);
 
   if (httpResponseCode == 200) {
+    
     String body = https.getString();
 //    Serial.print("200 got: ");
 //    Serial.println(body);
@@ -278,17 +346,31 @@ void loop() {
       Serial.println((eventList[j]->endDateTime).minute);
     }
 
-    String test = "abc,def, g ,458;erà3.,.";
-    int splitLength = 0;
-    String* val = Split(test, ",", splitLength);
-    for (int k = 0; k < splitLength; k++){
-      Serial.print(k);
-      Serial.print(" =<<< ");
-      Serial.println(val[k]);
+    if (calendarItemLength != 0){
+      Serial.println(isCurrentEvent(eventList[0], new DateTime("2025-01-23T10:30:00")) ? "is current" : "is not current");
+      Serial.println(isCurrentEvent(eventList[0], new DateTime("2025-01-23T11:00:00")) ? "is current" : "is not current");
+      Serial.println(isCurrentEvent(eventList[0], new DateTime("2025-01-23T11:01:00")) ? "is current" : "is not current");
+      //bool isCurrent = isCurrentEvent(eventList[0], new DateTime("2025-01-23T10:30:00"));
+      bool isCurrent = isCurrentEvent(eventList[0], current_date);
+      String prefix = isCurrent ? "current : " : "next : ";
+      if (calendarItemLength == 1){
+        //Check if current or not for text
+        //APIText = (eventList[0]->startDateTime).hour +":" + (eventList[0]->startDateTime).minute + " -> " + (eventList[0]->endDateTime).hour +":" + (eventList[0]->endDateTime).minute + "\n" + eventList[0]->subject;
+        APIText = prefix + eventList[0]->subject + " - " + (eventList[0]->startDateTime).hour +":" + (eventList[0]->startDateTime).minute + " -> " + (eventList[0]->endDateTime).hour +":" + (eventList[0]->endDateTime).minute;       
+      }
+      else{
+        //APIText = (eventList[0]->startDateTime).hour +":" + (eventList[0]->startDateTime).minute + " -> " + (eventList[0]->endDateTime).hour +":" + (eventList[0]->endDateTime).minute + "\n" + eventList[0]->subject;
+        APIText = prefix + eventList[0]->subject + " - " + (eventList[0]->startDateTime).hour +":" + (eventList[0]->startDateTime).minute + " -> " + (eventList[0]->endDateTime).hour +":" + (eventList[0]->endDateTime).minute +
+        " and after : " + eventList[1]->subject + " - " + (eventList[1]->startDateTime).hour +":" + (eventList[1]->startDateTime).minute + " -> " + (eventList[1]->endDateTime).hour +":" + (eventList[1]->endDateTime).minute;
+      }
+    }
+    else{
+      APIText = "No more events today";
+      Serial.println(APIText);
     }
 
-    //2025-05-26T10:30:00
-    DateTime* date = new DateTime("2025-05-26T10:30:00");
+    //2025-02-14T10:30:00
+    DateTime* date = new DateTime("2025-02-14T10:30:00");
     Serial.println(date->year);
     Serial.println(date->month);
     Serial.println(date->day);
@@ -296,6 +378,15 @@ void loop() {
     Serial.println(date->hour);
     Serial.println(date->minute);
     Serial.println(date->second);
+
+    Serial.println("current_date");
+    Serial.println(current_date->year);
+    Serial.println(current_date->month);
+    Serial.println(current_date->day);
+
+    Serial.println(current_date->hour);
+    Serial.println(current_date->minute);
+    Serial.println(current_date->second);
   }
   else {
     Serial.print("Err: ");
@@ -309,7 +400,7 @@ void loop() {
 
 
   
-  EPD_Clear();                   // Clear the screen content, restoring it to its default state
+  //EPD_Clear();                   // Clear the screen content, restoring it to its default state
   Paint_NewImage(Image_BW, EPD_W, EPD_H, 0, WHITE); // Create a new image buffer, size EPD_W x EPD_H, background color white
   EPD_Full(WHITE);              // Fill the entire canvas with white
   EPD_Display_Part(0, 0, EPD_W, EPD_H, Image_BW); // Display the image stored in the Image_BW array
@@ -322,5 +413,5 @@ void loop() {
   EPD_Sleep();                // Set the screen to sleep mode to save power
 
   
-  delay(60000); // Refresh data every minute
+  delay(autoRefreshSeconds * 1000); // Refresh data autoRefreshSeconds second
 }
