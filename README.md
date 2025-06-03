@@ -29,6 +29,9 @@ Afin d'effectuer ce projet, plusieurs choses sont indispensables :
 
 ### Libraries :
 
+> [!NOTE] Librairies du projet
+> Certaines méthodes comme le `XMLParser` ou encore le `Split` sont handmade.
+
 | Name |  Creator | Version |
 | :--: | :--: | :--: |
 | ArduinoHttpClient | Arduino | 0.6.1 |
