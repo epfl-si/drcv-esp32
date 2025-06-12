@@ -40,8 +40,11 @@ bool manualRefresh = false;
 
 int counter = 0;
 
+String separator = ";;;";
+String resetString = " " + separator + " " + separator + " " + separator + " " + separator + " " + separator + " ";
+
 bool firstLaunch = true;
-int autoRefreshMinutes = 60;
+int autoRefreshMinutes = 60; //Every hour
 const int MIN_HOUR_REFRESH = 5;
 const int MAX_HOUR_REFRESH = 22;
 
@@ -203,11 +206,12 @@ void Update_Display(String APIText) {
     startY = 80 + 20;
 
     if (APIText != "No more events today"){
-      if (APIText.indexOf(",") != -1){
+      if (APIText.indexOf(separator) != -1){
         int len = 0;
         int maxElem = 2;
-        String* APITextArray = Split(APIText, ",", len);
-        maxElem = len < maxElem ? len : maxElem;
+        String* APITextArray = Split(APIText, separator.c_str(), len);
+        maxElem = len < maxElem ? len : maxElem; //Len for real data, max 2
+        maxElem = APIText.indexOf(resetString) != -1 ? 6 : maxElem; //Len for clear, max 6
         Serial.print("len : ");
         Serial.println(len);
         Serial.print("maxElem : ");
@@ -216,7 +220,7 @@ void Update_Display(String APIText) {
           for (int i = 0; i < maxElem; i++){
             Serial.println("a");
             Serial.println(APITextArray[i]);
-            Serial.println(APITextArray[i]);
+            Serial.println(APITextArray[i].c_str());
             Part_Text_Display(APITextArray[i].c_str(), startX, startY, fontSize, BLACK, endX, endY);
           }
         }
@@ -247,10 +251,12 @@ void Update_Display(String APIText) {
     if (WiFi.status() == WL_CONNECTED){
       Serial.println("Update_Display before refresh date");
       refreshDateTime(before_refresh_date);
-      String current_date_refresh = current_date->year + "-" + current_date->month + "-" + current_date->day + " " + current_date->hour + ":" + current_date->minute + ":" + current_date->second;
-      EPD_ShowString(0, 11 * fontSize, current_date_refresh.c_str(), fontSize, BLACK);
-      EPD_DrawLine(0, 11 * fontSize - 5, 250, 11 * fontSize - 5, BLACK); // Horizontal line
-      EPD_DrawLine(250, 11 * fontSize - 5, 251, 390, BLACK); // Vertical line
+      String current_date_refresh = current_date->year + "-" + current_date->month + "-" + current_date->day;
+      String current_hour_refresh = current_date->hour + ":" + current_date->minute + ":" + current_date->second;
+      EPD_ShowString(0, 11 * fontSize - 4, current_date_refresh.c_str(), fontSize, BLACK);
+      EPD_ShowString(0, 12 * fontSize - 4, ("last refresh: " + current_hour_refresh).c_str(), 12, BLACK);
+      EPD_DrawLine(0, 11 * fontSize - 5, 140, 11 * fontSize - 5, BLACK); // Horizontal line
+      EPD_DrawLine(140, 11 * fontSize - 4, 140, 12 * fontSize - 4 + 12, BLACK); // Vertical line
       Serial.println("Update_Display after refresh date");
     }
 
@@ -435,6 +441,10 @@ void setup() {
   
   ///EPD_Init_Fast(Fast_Seconds_1_5s); // Quickly initialize the EPD screen, setting it to 1.5 second fast mode
   EPD_ShowPicture(0, 0, 400, 80, EPFL_INN011_header, BLACK);
+
+  //EPD_ShowString(0, 40, "INN 011 - Tabulation", 48, WHITE);
+  EPD_ShowString(20, 40, "INN 011 - Tabulation", 24, WHITE);
+  
   EPD_ShowPicture(400 - 32, 300 - 32 - 16, 32, 32, epd_bitmap_refresh, BLACK);
 
   Serial.println("eee");
@@ -537,7 +547,7 @@ void loop() {
   
   if ((current_date->hour.toInt() >= MIN_HOUR_REFRESH && current_date->hour.toInt() <= MAX_HOUR_REFRESH && currentTime - lastUpdateTime >= 60000 * autoRefreshMinutes) || manualRefresh || firstLaunch){
     lastUpdateTime = currentTime;
-    Update_Display(" , , , , , "); //Refresh partial replace (replacing all writing area with space)
+    Update_Display(resetString); //Refresh partial replace (replacing all writing area with space)
     Serial.println("Start");
     Serial.print("firstLaunch : ");
     Serial.println(firstLaunch);
@@ -645,8 +655,10 @@ void loop() {
   
     //xmlRequest.replace("{start}", dateTimeString); // Replace the {start} with the current datetime
     //xmlRequest.replace("{end}", dateString); // Replace the {end} with the current date
-    xmlRequest.replace("{start}", "2025-06-02T00:30:24"); // Replace the {start} with the current datetime
-    xmlRequest.replace("{end}", "2025-06-02"); // Replace the {end} with the current date
+    
+    xmlRequest.replace("{start}", "2025-06-11T13:30:24"); // Replace the {start} with the current datetime
+    xmlRequest.replace("{end}", "2025-06-11"); // Replace the {end} with the current date
+    
     //xmlRequest.replace("{start}", "2025-01-23T00:30:24"); // Replace the {start} with the current datetime
     //xmlRequest.replace("{end}", "2025-01-23"); // Replace the {end} with the current date
   
@@ -719,9 +731,9 @@ void loop() {
 //          " and after : " + eventList[1]->subject + " - " + ((eventList[1]->startDateTime).hour.toInt() + 2) +":" + (eventList[1]->startDateTime).minute + " -> " + ((eventList[1]->endDateTime).hour.toInt() + 2) +":" + (eventList[1]->endDateTime).minute;
           APIText = "";
           for (int i = 0; i < calendarItemLength; i++){
-            String separator = i == 0 ? " > " : ",   ";
+            String separator_string = i == 0 ? " > " : separator + "   ";
             Serial.println("dd");
-            String res = separator + ((eventList[i]->startDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[i]->startDateTime).hour.toInt() + 2) : (eventList[i]->startDateTime).hour.toInt() + 2) +":" + (eventList[i]->startDateTime).minute + "-" + ((eventList[i]->endDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[i]->endDateTime).hour.toInt() + 2) : (eventList[i]->endDateTime).hour.toInt() + 2) +":" + (eventList[i]->endDateTime).minute + " " + eventList[i]->subject;
+            String res = separator_string + ((eventList[i]->startDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[i]->startDateTime).hour.toInt() + 2) : (eventList[i]->startDateTime).hour.toInt() + 2) +":" + (eventList[i]->startDateTime).minute + "-" + ((eventList[i]->endDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[i]->endDateTime).hour.toInt() + 2) : (eventList[i]->endDateTime).hour.toInt() + 2) +":" + (eventList[i]->endDateTime).minute + " " + eventList[i]->subject;
             Serial.println(res);
             APIText += res;
           }
@@ -794,7 +806,7 @@ void loop() {
 //    startY = 80 + 20;
 
 
-      Update_Display(" , , , , , "); //Refresh partial replace (replacing all writing area with space)
+      Update_Display(resetString); //Refresh partial replace (replacing all writing area with space)
       Update_Display(APIText);
 //    if (APIText != "No more events today"){
 //      if (APIText.indexOf(",") != -1){

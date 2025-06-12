@@ -37,3 +37,7 @@ Afin d'effectuer ce projet, plusieurs choses sont indispensables :
 | ArduinoHttpClient | Arduino | 0.6.1 |
 | Wifi101 | Arduino | 0.16.1 |
 | Base64 | Arturo Guadalupi | 1.0.2 |
+
+# Liens utiles
+
+- [Convertisseur d'image en image arduino](https://javl.github.io/image2cpp/)
