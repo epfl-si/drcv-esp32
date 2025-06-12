@@ -651,13 +651,14 @@ void loop() {
   
 
     String dateString = "" + current_date->year + "-" + current_date->month + "-" + current_date->day;
-    String dateTimeString = dateString + "T" + current_date->hour + ":" + current_date->minute + ":" + current_date->second;
+    String hourString = String(current_date->hour.toInt() - 2 >= 0 ? current_date->hour.toInt() - 2 : current_date->hour.toInt());
+    String dateTimeString = dateString + "T" + (hourString.length() == 1 ? "0" + hourString : hourString) + ":" + current_date->minute + ":" + current_date->second;
   
-    //xmlRequest.replace("{start}", dateTimeString); // Replace the {start} with the current datetime
-    //xmlRequest.replace("{end}", dateString); // Replace the {end} with the current date
+    xmlRequest.replace("{start}", dateTimeString); // Replace the {start} with the current datetime
+    xmlRequest.replace("{end}", dateString); // Replace the {end} with the current date
     
-    xmlRequest.replace("{start}", "2025-06-11T13:30:24"); // Replace the {start} with the current datetime
-    xmlRequest.replace("{end}", "2025-06-11"); // Replace the {end} with the current date
+    //xmlRequest.replace("{start}", "2025-06-11T13:30:24"); // Replace the {start} with the current datetime
+    //xmlRequest.replace("{end}", "2025-06-11"); // Replace the {end} with the current date
     
     //xmlRequest.replace("{start}", "2025-01-23T00:30:24"); // Replace the {start} with the current datetime
     //xmlRequest.replace("{end}", "2025-01-23"); // Replace the {end} with the current date
