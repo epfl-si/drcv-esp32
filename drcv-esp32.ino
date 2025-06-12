@@ -221,6 +221,7 @@ void Update_Display(String APIText) {
             Serial.println("a");
             Serial.println(APITextArray[i]);
             Serial.println(APITextArray[i].c_str());
+            startY = APIText.indexOf(">") != -1 ? (startY + fontSize / 2) : startY;
             Part_Text_Display(APITextArray[i].c_str(), startX, startY, fontSize, BLACK, endX, endY);
           }
         }
