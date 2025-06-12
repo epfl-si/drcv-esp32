@@ -69,7 +69,7 @@ int fontSize = 24; // Font size
 int endX = 400;    // End horizontal axis
 int endY = 300;    // End vertical axis
 
-const char *Loading_Message = "Wifi Connection in progress,please wait...";
+String Loading_Message = "Wifi Connection in progress" + separator + "please wait...";
 String APIText = "Default";
 String response = "Default";
 
@@ -124,34 +124,226 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
     int currentY = startY;
     int lineHeight = fontSize;
 
-    while (i < length) {
-        int lineLength = 0;
-        memset(line, 0, sizeof(line));
+    String mystring(content);
+
+//    Serial.println();
+//    Serial.println();
+//    Serial.println();
+//    Serial.println();
+//    Serial.println();
+//    Serial.println();
+//
+//    Serial.println((endX - startX) / (fontSize/2) + 1);
+//    Serial.println(content);
+//    Serial.println(mystring.length() * (fontSize/2));
+//    
+//    Serial.println();
+//    Serial.println();
+//    Serial.println();
+//    Serial.println();
+//    Serial.println();
+//    Serial.println();
+
+//    while (i < length) {
+//        int lineLength = 0;
+//        memset(line, 0, sizeof(line));
+//
+//        // Fill the line until it reaches the width of the region or the end of the string
+//        while (lineLength < (endX - startX) / (fontSize/2) && i < length) {
+//            line[lineLength++] = content[i++];
+//        }
+//
+//        while (lineLength < (endX - startX) / (fontSize/2)) {
+//            line[lineLength++] = ' ';
+//        }
+//
+//        // If the current Y coordinate plus font size exceeds the area height, stop displaying
+//        if (currentY + lineHeight > endY) {
+//            break;
+//        }
+//        // Display this line
+//        EPD_ShowString(currentX, currentY, line, fontSize, color); 
+//        Serial.print("line: ");
+//        Serial.println(line);
+//
+//        // Update the Y coordinate for displaying the next line
+//        currentY += lineHeight;
+//
+//        // If there are still remaining strings but they have reached the bottom of the area, stop displaying them
+//        if (currentY + lineHeight > endY) {
+//            break;
+//        }
+//    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//    if (mystring.length() * (fontSize/2) < (endX - startX) / (fontSize/2) + 1){
+//       while (i < length) {
+//          int lineLength = 0;
+//          memset(line, 0, sizeof(line));
+//  
+//          // Fill the line until it reaches the width of the region or the end of the string
+//          while (lineLength < (endX - startX) / (fontSize/2) && i < length) {
+//              line[lineLength++] = content[i++];
+//          }
+//  
+//          while (lineLength < (endX - startX) / (fontSize/2)) {
+//              line[lineLength++] = ' ';
+//          }
+//  
+//          // If the current Y coordinate plus font size exceeds the area height, stop displaying
+//          if (currentY + lineHeight > endY) {
+//              break;
+//          }
+//          // Display this line
+//          EPD_ShowString(currentX, currentY, line, fontSize, color); 
+//          Serial.print("line: ");
+//          Serial.println(line);
+//  
+//          // Update the Y coordinate for displaying the next line
+//          currentY += lineHeight;
+//  
+//          // If there are still remaining strings but they have reached the bottom of the area, stop displaying them
+//          if (currentY + lineHeight > endY) {
+//              break;
+//          }
+//      }       
+//    }
+//    else{
+    //lineLength + SplitString.length() * (fontSize/2) < (endX - startX) / (fontSize/2) + 1
+
+
+//
+    int leen = 0;
+    String* test = Split("> 10:00-11:30 ISAS-FSD Seance de groupe", " ", leen);
+//
+    Serial.println();
+    Serial.println("HEEEEEEEEEEEEEELP");
+    Serial.print("leen: ");
+    Serial.println(leen);
+    for (int w = 0; w < leen; w++){
+      Serial.print(w);
+      Serial.print(": ");
+      Serial.println(test[w]);
+    }
+    Serial.println("HEEEEEEEEEEEEEELP");
+    Serial.println();
+
+
+    
+    int len = 0;
+    int lineLength = 0;
+    String* SplitString = Split(content, " ", len);
+    String strTempLine = "";
+    for (int j = 0; j < len; j++){
+      String ct = SplitString[j];
+      i = 0;
+      int ctLen = ct.length();
+      Serial.println("");
+      Serial.println("in loop");
+      Serial.print(j);
+      Serial.print("/");
+      Serial.print(len - 1);
+      Serial.print("ctLen * (fontSize/2) : ");
+      Serial.println(ctLen * (fontSize/2));
+      Serial.print("(endX - currentX) : ");
+      Serial.println((endX - currentX));
+      Serial.print("ctLen * (fontSize/2) > (endX - currentX) : ");
+      Serial.println(ctLen * (fontSize/2) > (endX - currentX));
+      if (ctLen * (fontSize/2) > (endX - currentX)){
+        Serial.println("Fill with space [reason=too long]");
+        while (strTempLine.length() < (endX - startX) / (fontSize/2)) {
+            strTempLine += ' ';
+        }
+        // Display this line
+        Serial.print("strTempLine: ");
+        Serial.println(strTempLine);
+        EPD_ShowString(0, currentY, strTempLine.c_str(), fontSize, color);
+        currentX = 0;
+        lineLength = currentX;
+        currentY += lineHeight;
+        strTempLine = "";
+        j--;
+      }
+      else{
+        Serial.print("ct : ");
+        Serial.println(ct);
+
+        Serial.print("BefcurrentX: ");
+        Serial.println(currentX);
+        Serial.print("BefcurrentY: ");
+        Serial.println(currentY);
+
+        Serial.print("ctlen : ");
+        Serial.println(ctLen);
+
+        
+        //memset(line, 0, sizeof(line));
 
         // Fill the line until it reaches the width of the region or the end of the string
-        while (lineLength < (endX - startX) / (fontSize/2) && i < length) {
-            line[lineLength++] = content[i++];
-        }
+//        while (lineLength < (endX - startX) / (fontSize/2) && i < ctLen) {
+//            line[lineLength++] = ct[i++];
+//            Serial.print("   ");
+//            Serial.print(line[lineLength-1]);
+//            Serial.print(ct[i-1]);
+//            Serial.print("  ");
+//            Serial.println(lineLength);
+//        }
 
-        while (lineLength < (endX - startX) / (fontSize/2)) {
-            line[lineLength++] = ' ';
-        }
+
+        strTempLine += ct;
+        strTempLine += ' ';
+
+        currentX = strTempLine.length() * (fontSize/2);
 
         // If the current Y coordinate plus font size exceeds the area height, stop displaying
         if (currentY + lineHeight > endY) {
             break;
         }
-        // Display this line
-        EPD_ShowString(currentX, currentY, line, fontSize, color); 
 
-        // Update the Y coordinate for displaying the next line
-        currentY += lineHeight;
-
-        // If there are still remaining strings but they have reached the bottom of the area, stop displaying them
-        if (currentY + lineHeight > endY) {
-            break;
+        if (j == len - 1){
+          Serial.println("Fill with space [reason=finish]");
+          while (strTempLine.length() < (endX - startX) / (fontSize/2)) {
+              strTempLine += ' ';
+          }
+          // Display this line
+          EPD_ShowString(0, currentY, strTempLine.c_str(), fontSize, color);
+          currentX = 0;
+          lineLength = currentX;
+          
+          Serial.print("strTempLine: ");
+          Serial.println(strTempLine);
+          currentY += lineHeight;  
+          strTempLine = "";       
         }
+
+        Serial.print("strTempLineLength: ");
+        Serial.println(strTempLine.length());
+
+        Serial.print("currentX: ");
+        Serial.println(currentX);
+        Serial.print("currentY: ");
+        Serial.println(currentY);
+      }
     }
+        
+    //}
     startY = currentY;
 }
 
@@ -398,6 +590,7 @@ void setup() {
   EPD_Clear_R26H(Image_BW);
   EPD_Update();
 
+
   // The SPI initialization part is commented out
   // SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
   // SPI.begin ();
@@ -573,7 +766,7 @@ void loop() {
     //EPD_ShowString(0, 0 * fontSize, "Make API request", fontSize, BLACK); 
     //EPD_ShowString(0, 1 * fontSize, "Please wait...", fontSize, BLACK); 
     Serial.println("Before API request text");
-    Update_Display("Make API request,Please wait...");
+    Update_Display("Make API request" + separator + "Please wait...");
     Serial.println("After API request text");
     //EPD_Display_Fast(Image_BW); // Quickly display the image stored in the Image_BW array
 
@@ -655,11 +848,11 @@ void loop() {
     String hourString = String(current_date->hour.toInt() - 2 >= 0 ? current_date->hour.toInt() - 2 : current_date->hour.toInt());
     String dateTimeString = dateString + "T" + (hourString.length() == 1 ? "0" + hourString : hourString) + ":" + current_date->minute + ":" + current_date->second;
   
-    xmlRequest.replace("{start}", dateTimeString); // Replace the {start} with the current datetime
-    xmlRequest.replace("{end}", dateString); // Replace the {end} with the current date
+    //xmlRequest.replace("{start}", dateTimeString); // Replace the {start} with the current datetime
+    //xmlRequest.replace("{end}", dateString); // Replace the {end} with the current date
     
-    //xmlRequest.replace("{start}", "2025-06-11T13:30:24"); // Replace the {start} with the current datetime
-    //xmlRequest.replace("{end}", "2025-06-11"); // Replace the {end} with the current date
+    xmlRequest.replace("{start}", "2025-06-11T03:30:24"); // Replace the {start} with the current datetime
+    xmlRequest.replace("{end}", "2025-06-11"); // Replace the {end} with the current date
     
     //xmlRequest.replace("{start}", "2025-01-23T00:30:24"); // Replace the {start} with the current datetime
     //xmlRequest.replace("{end}", "2025-01-23"); // Replace the {end} with the current date
@@ -725,7 +918,7 @@ void loop() {
         if (calendarItemLength == 1){
           //Check if current or not for text
           //APIText = (eventList[0]->startDateTime).hour +":" + (eventList[0]->startDateTime).minute + " -> " + (eventList[0]->endDateTime).hour +":" + (eventList[0]->endDateTime).minute + "\n" + eventList[0]->subject;
-          APIText = " > " + String((eventList[0]->startDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[0]->startDateTime).hour.toInt() + 2) : (eventList[0]->startDateTime).hour.toInt() + 2) +":" + (eventList[0]->startDateTime).minute + "-" + ((eventList[0]->endDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[0]->endDateTime).hour.toInt() + 2) : (eventList[0]->endDateTime).hour.toInt() + 2) +":" + (eventList[0]->endDateTime).minute + " " + eventList[0]->subject;
+          APIText = "> " + String((eventList[0]->startDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[0]->startDateTime).hour.toInt() + 2) : (eventList[0]->startDateTime).hour.toInt() + 2) +":" + (eventList[0]->startDateTime).minute + "-" + ((eventList[0]->endDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[0]->endDateTime).hour.toInt() + 2) : (eventList[0]->endDateTime).hour.toInt() + 2) +":" + (eventList[0]->endDateTime).minute + " " + eventList[0]->subject;
         }
         else{
           //APIText = (eventList[0]->startDateTime).hour +":" + (eventList[0]->startDateTime).minute + " -> " + (eventList[0]->endDateTime).hour +":" + (eventList[0]->endDateTime).minute + "\n" + eventList[0]->subject;
@@ -733,7 +926,7 @@ void loop() {
 //          " and after : " + eventList[1]->subject + " - " + ((eventList[1]->startDateTime).hour.toInt() + 2) +":" + (eventList[1]->startDateTime).minute + " -> " + ((eventList[1]->endDateTime).hour.toInt() + 2) +":" + (eventList[1]->endDateTime).minute;
           APIText = "";
           for (int i = 0; i < calendarItemLength; i++){
-            String separator_string = i == 0 ? " > " : separator + "   ";
+            String separator_string = i == 0 ? "> " : separator;
             Serial.println("dd");
             String res = separator_string + ((eventList[i]->startDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[i]->startDateTime).hour.toInt() + 2) : (eventList[i]->startDateTime).hour.toInt() + 2) +":" + (eventList[i]->startDateTime).minute + "-" + ((eventList[i]->endDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[i]->endDateTime).hour.toInt() + 2) : (eventList[i]->endDateTime).hour.toInt() + 2) +":" + (eventList[i]->endDateTime).minute + " " + eventList[i]->subject;
             Serial.println(res);
