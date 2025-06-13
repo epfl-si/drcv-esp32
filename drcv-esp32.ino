@@ -2,7 +2,6 @@
 #include "time.h"
 
 #include <HTTPClient.h>
-//#include "esp_eap_client.h"
 #include "sdkconfig.h"
 #if CONFIG_ESP_WIFI_REMOTE_ENABLED
 #error "WPA-Enterprise is only supported in SoCs with native Wi-Fi support"
@@ -19,14 +18,10 @@
 #include <ArduinoHttpClient.h>
 
 #include <SPI.h>
-//#include <WiFi101.h>
 
 #include <Arduino.h>        // Include the core library for Arduino platform development
 #include "EPD.h"            // Include the EPD library to control the E-Paper Display
-//#include "EPD_GUI.h"        // Include the EPD_GUI library which provides GUI functionalities
 #include "pic_scenario.h"   // Include the header file containing image data
-//#include "INN011_header.h"   // Include the header file containing image data
-//#include "refresh_icon.h"
 
 // Define button pins
 #define BUTTON_DOWN 1
@@ -134,127 +129,6 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
     String mystring(content);
 
     int initX = startX;
-
-//    Serial.println();
-//    Serial.println();
-//    Serial.println();
-//    Serial.println();
-//    Serial.println();
-//    Serial.println();
-//
-//    Serial.println((endX - startX) / (fontSize/2) + 1);
-//    Serial.println(content);
-//    Serial.println(mystring.length() * (fontSize/2));
-//    
-//    Serial.println();
-//    Serial.println();
-//    Serial.println();
-//    Serial.println();
-//    Serial.println();
-//    Serial.println();
-
-//    while (i < length) {
-//        int lineLength = 0;
-//        memset(line, 0, sizeof(line));
-//
-//        // Fill the line until it reaches the width of the region or the end of the string
-//        while (lineLength < (endX - startX) / (fontSize/2) && i < length) {
-//            line[lineLength++] = content[i++];
-//        }
-//
-//        while (lineLength < (endX - startX) / (fontSize/2)) {
-//            line[lineLength++] = ' ';
-//        }
-//
-//        // If the current Y coordinate plus font size exceeds the area height, stop displaying
-//        if (currentY + lineHeight > endY) {
-//            break;
-//        }
-//        // Display this line
-//        EPD_ShowString(currentX, currentY, line, fontSize, color); 
-//        Serial.print("line: ");
-//        Serial.println(line);
-//
-//        // Update the Y coordinate for displaying the next line
-//        currentY += lineHeight;
-//
-//        // If there are still remaining strings but they have reached the bottom of the area, stop displaying them
-//        if (currentY + lineHeight > endY) {
-//            break;
-//        }
-//    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//    if (mystring.length() * (fontSize/2) < (endX - startX) / (fontSize/2) + 1){
-//       while (i < length) {
-//          int lineLength = 0;
-//          memset(line, 0, sizeof(line));
-//  
-//          // Fill the line until it reaches the width of the region or the end of the string
-//          while (lineLength < (endX - startX) / (fontSize/2) && i < length) {
-//              line[lineLength++] = content[i++];
-//          }
-//  
-//          while (lineLength < (endX - startX) / (fontSize/2)) {
-//              line[lineLength++] = ' ';
-//          }
-//  
-//          // If the current Y coordinate plus font size exceeds the area height, stop displaying
-//          if (currentY + lineHeight > endY) {
-//              break;
-//          }
-//          // Display this line
-//          EPD_ShowString(currentX, currentY, line, fontSize, color); 
-//          Serial.print("line: ");
-//          Serial.println(line);
-//  
-//          // Update the Y coordinate for displaying the next line
-//          currentY += lineHeight;
-//  
-//          // If there are still remaining strings but they have reached the bottom of the area, stop displaying them
-//          if (currentY + lineHeight > endY) {
-//              break;
-//          }
-//      }       
-//    }
-//    else{
-    //lineLength + SplitString.length() * (fontSize/2) < (endX - startX) / (fontSize/2) + 1
-
-
-//
-    int leen = 0;
-    String* test = Split("> 10:00-11:30 ISAS-FSD Seance de groupe", " ", leen);
-//
-//    Serial.println();
-//    Serial.println("HEEEEEEEEEEEEEELP");
-//    Serial.print("leen: ");
-//    Serial.println(leen);
-//    for (int w = 0; w < leen; w++){
-//      Serial.print(w);
-//      Serial.print(": ");
-//      Serial.println(test[w]);
-//    }
-//    Serial.println("HEEEEEEEEEEEEEELP");
-//    Serial.println();
-
-
     
     int len = 0;
     int lineLength = 0;
@@ -264,25 +138,10 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
       String ct = SplitString[j];
       i = 0;
       int ctLen = ct.length();
-//      Serial.println("");
-//      Serial.println("in loop");
-//      Serial.print(j);
-//      Serial.print("/");
-//      Serial.print(len - 1);
-//      Serial.print("ctLen * (fontSize/2) : ");
-//      Serial.println(ctLen * (fontSize/2));
-//      Serial.print("(endX - currentX) : ");
-//      Serial.println((endX - currentX));
-//      Serial.print("ctLen * (fontSize/2) > (endX - currentX) : ");
-//      Serial.println(ctLen * (fontSize/2) > (endX - currentX));
       if (ctLen * (fontSize/2) + initX > (endX - currentX)){
-//        Serial.println("Fill with space [reason=too long]");
         while (strTempLine.length() < (endX - startX) / (fontSize/2)) {
             strTempLine += ' ';
         }
-        // Display this line
-//        Serial.print("strTempLine: ");
-//        Serial.println(strTempLine);
         EPD_ShowString(initX, currentY, strTempLine.c_str(), fontSize, color);
         currentX = 0;
         lineLength = currentX;
@@ -291,31 +150,6 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
         j--;
       }
       else{
-//        Serial.print("ct : ");
-//        Serial.println(ct);
-//
-//        Serial.print("BefcurrentX: ");
-//        Serial.println(currentX);
-//        Serial.print("BefcurrentY: ");
-//        Serial.println(currentY);
-//
-//        Serial.print("ctlen : ");
-//        Serial.println(ctLen);
-
-        
-        //memset(line, 0, sizeof(line));
-
-        // Fill the line until it reaches the width of the region or the end of the string
-//        while (lineLength < (endX - startX) / (fontSize/2) && i < ctLen) {
-//            line[lineLength++] = ct[i++];
-//            Serial.print("   ");
-//            Serial.print(line[lineLength-1]);
-//            Serial.print(ct[i-1]);
-//            Serial.print("  ");
-//            Serial.println(lineLength);
-//        }
-
-
         strTempLine += ct;
         strTempLine += ' ';
 
@@ -327,7 +161,6 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
         }
 
         if (j == len - 1){
-//          Serial.println("Fill with space [reason=finish]");
           while (strTempLine.length() < (endX - startX) / (fontSize/2)) {
               strTempLine += ' ';
           }
@@ -335,24 +168,11 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
           EPD_ShowString(initX, currentY, strTempLine.c_str(), fontSize, color);
           currentX = 0;
           lineLength = currentX;
-          
-//          Serial.print("strTempLine: ");
-//          Serial.println(strTempLine);
           currentY += lineHeight;  
           strTempLine = "";       
         }
-
-//        Serial.print("strTempLineLength: ");
-//        Serial.println(strTempLine.length());
-//
-//        Serial.print("currentX: ");
-//        Serial.println(currentX);
-//        Serial.print("currentY: ");
-//        Serial.println(currentY);
       }
     }
-        
-    //}
     startY = currentY;
 }
 
@@ -376,16 +196,6 @@ void refreshDateTime(DateTime* &datetime){
     Serial.println("Failed to get time from NTP.");
   } else {
     Serial.println("Time synced successfully!");
-//    Serial.print("Date: ");
-//    Serial.print(timeinfo.tm_year + 1900); Serial.print("-");
-//    Serial.print(timeinfo.tm_mon + 1);     Serial.print("-");
-//    Serial.print(timeinfo.tm_mday);        Serial.print("  ");
-//  
-//    Serial.print("Time: ");
-//    Serial.print(timeinfo.tm_hour);   Serial.print(":");
-//    Serial.print(timeinfo.tm_min);    Serial.print(":");
-//    Serial.println(timeinfo.tm_sec);
-
     char timeString[20];
     strftime(timeString, sizeof(timeString), "%Y-%m-%dT%H:%M:%S", &timeinfo);
     datetime = new DateTime(timeString);
@@ -398,7 +208,6 @@ void refreshDateTime(DateTime* &datetime){
 
 
 void Update_Display(String APIText) {
-    //EPD_ShowPicture(0, 0, 400, 80, EPFL_INN011_header, BLACK);
   
     startY = 80 + 20;
 
@@ -414,25 +223,16 @@ void Update_Display(String APIText) {
         String* APITextArray = Split(APIText, separator.c_str(), len);
         maxElem = len < maxElem ? len : maxElem; //Len for real data, max 2
         maxElem = APIText.indexOf(resetString) != -1 ? 6 : maxElem; //Len for clear, max 6
-        Serial.print("len : ");
-        Serial.println(len);
-        Serial.print("maxElem : ");
-        Serial.println(maxElem);
         if (len > 1){
           for (int i = 0; i < maxElem; i++){
             Serial.println("a");
-            Serial.println(APITextArray[i]);
-            Serial.println(APITextArray[i].c_str());
             startX = APIText.indexOf(">") != -1 ? dateIndents : startX;
             Part_Text_Display(APITextArray[i].c_str(), startX, startY, fontSize, BLACK, endX, endY);
             startY = APIText.indexOf(">") != -1 ? (startY + fontSize / 2) : startY;
-            //startY += fontSize / 2;
           }
         }
         else if (len == 1){
           Serial.println("b");
-          Serial.println(APIText);
-          Serial.println(" > " + APIText);
           Part_Text_Display(APIText.c_str(), startX, startY, fontSize, BLACK, endX, endY);
         }
         else{
@@ -442,10 +242,7 @@ void Update_Display(String APIText) {
       }
       else{
         Serial.println("d");
-        Serial.println(APIText);
-        Serial.println(APIText);
         Part_Text_Display(APIText.c_str(), startX, startY, fontSize, BLACK, endX, endY);
-        //EPD_ShowString(startX, startY, (" > " + APIText).c_str(), fontSize, BLACK);//  Printing time
       }
     }
     else{
@@ -465,15 +262,11 @@ void Update_Display(String APIText) {
       Serial.println("Update_Display after refresh date");
     }
 
-    
-    //EPD_Display_Part(0, 0, 400, 300, Image_BW); 
     Serial.println("Update_Display before refresh");
     EPD_Display(Image_BW);
     Serial.println("Update_Display middle refresh");
     EPD_Update_Part();
     Serial.println("Update_Display after refresh");
-  
-    //EPD_Sleep();                // Set the screen to sleep mode to save power
 }
 
 
@@ -601,62 +394,12 @@ void setup() {
   EPD_Display(Image_BW);
   EPD_Clear_R26H(Image_BW);
   EPD_Update();
-
-
-  // The SPI initialization part is commented out
-  // SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
-  // SPI.begin ();
-
-
-
-
-
-
-
-
-    
-    
-  
-    
-  
-    //EPD_ShowPicture(0, 0, 312, 152, gImage_1, WHITE); // Display image gImage_1, starting coordinates (0, 0), width 312, height 152, background color white
-    
-
-    
-
-
-
-
-
-
-
-
-  
-
-    //Paint_NewImage(Image_BW, EPD_W, EPD_H, 0, WHITE); // Create a new image buffer, size EPD_W x EPD_H, background color white
-    
-  ///Paint_NewImage(Image_BW, EPD_W, EPD_H, 0, BLACK); // Create a new image buffer, size EPD_W x EPD_H, background color white
-  ///EPD_Full(WHITE);  // Fill the entire canvas with white
-  
-  //EPD_Display_Part(0, 0, EPD_W, EPD_H, Image_BW); // Display the image stored in the Image_BW array
-  //EPD_Display_Part(0, 0, EPD_W, EPD_H, Image_BW); // Display the image stored in the Image_BW array
-  
-  ///EPD_Display(Image_BW); // Display the image stored in the Image_BW array
-  
-  //EPD_Init_Fast(Fast_Seconds_1_5s); // Quickly initialize the EPD screen, setting it to 1.5 second fast mode
-  
-  ///EPD_Init_Fast(Fast_Seconds_1_5s); // Quickly initialize the EPD screen, setting it to 1.5 second fast mode
+ 
   EPD_ShowPicture(0, 0, 400, 80, EPFL_INN011_header, BLACK);
 
-  //EPD_ShowString(0, 40, "INN 011 - Tabulation", 48, WHITE);
   EPD_ShowString(20, 40, "INN 011 - Tabulation", 24, WHITE);
   
   EPD_ShowPicture(400 - 32, 300 - 32 - 16, 32, 32, epd_bitmap_refresh, BLACK);
-
-  Serial.println("eee");
-  Serial.println(sizeof(EPFL_INN011_header));
-  Serial.println(sizeof(epd_bitmap_refresh));
-  Serial.println("eee");
   
 
   Serial.println("Before Wifi text");
@@ -677,12 +420,6 @@ void setup() {
   // Example1 (most common): a cert-file-free eduroam with PEAP (or TTLS)
   WiFi.begin(ssid, WPA2_AUTH_PEAP, EAP_IDENTITY, EAP_USERNAME, EAP_PASSWORD);
 
-  // Example 2: a cert-file WPA2 Enterprise with PEAP
-  //WiFi.begin(ssid, WPA2_AUTH_PEAP, EAP_IDENTITY, EAP_USERNAME, EAP_PASSWORD, ca_pem, client_cert, client_key);
-
-  // Example 3: TLS with cert-files and no password
-  //WiFi.begin(ssid, WPA2_AUTH_TLS, EAP_IDENTITY, NULL, NULL, ca_pem, client_cert, client_key);
-
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -698,8 +435,6 @@ void setup() {
 
   refreshDateTime(current_date);
   refreshDateTime(before_refresh_date);
-  
-  //clear_all();               // Call the clear_all function to clear the screen content
 }
 
 
@@ -753,37 +488,10 @@ void loop() {
   if ((current_date->hour.toInt() >= MIN_HOUR_REFRESH && current_date->hour.toInt() <= MAX_HOUR_REFRESH && currentTime - lastUpdateTime >= 60000 * autoRefreshMinutes) || manualRefresh || firstLaunch){
     lastUpdateTime = currentTime;
     Update_Display(resetString); //Refresh partial replace (replacing all writing area with space)
-    Serial.println("Start");
-    Serial.print("firstLaunch : ");
-    Serial.println(firstLaunch);
-    Serial.print("manualRefresh : ");
-    Serial.println(manualRefresh);
-    Serial.print("(current_date->hour.toInt() >= MIN_HOUR_REFRESH && current_date->hour.toInt() <= MAX_HOUR_REFRESH && currentTime - lastUpdateTime >= 1000 * autoRefreshMinutes) : ");
-    Serial.println((current_date->hour.toInt() >= MIN_HOUR_REFRESH && current_date->hour.toInt() <= MAX_HOUR_REFRESH && currentTime - lastUpdateTime >= 1000 * autoRefreshMinutes));
-  //if ((current_date->hour.toInt() >= MIN_HOUR_REFRESH && current_date->hour.toInt() <= MAX_HOUR_REFRESH) || manualRefresh){
-    lastUpdateTime = currentTime;
+    
     firstLaunch = false;
 
-
-
-
-
-    //Paint_NewImage(Image_BW, EPD_W, EPD_H, 0, WHITE); // Create a new image buffer, size EPD_W x EPD_H, background color white
-    //EPD_Full(WHITE);              // Fill the entire canvas with white
-    //EPD_Display_Part(0, 0, EPD_W, EPD_H, Image_BW); // Display the image stored in the Image_BW array
-  
-    //EPD_Init_Fast(Fast_Seconds_1_5s); // Quickly initialize the EPD screen, setting it to 1.5 second fast mode
-
-    //EPD_ShowString(0, 0 * fontSize, "Make API request", fontSize, BLACK); 
-    //EPD_ShowString(0, 1 * fontSize, "Please wait...", fontSize, BLACK); 
-    Serial.println("Before API request text");
     Update_Display(replaceAccentChar(APIRequestText));
-    Serial.println("After API request text");
-    //EPD_Display_Fast(Image_BW); // Quickly display the image stored in the Image_BW array
-
-    //EPD_Update_Part();
-  
-    //EPD_Sleep();                // Set the screen to sleep mode to save power
 
 
 
@@ -810,45 +518,6 @@ void loop() {
       }
     }
     Serial.println("Connecting to NTP server: ");
-  
-//      // Configure NTP
-//    configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-//  
-//  
-//  
-//    int retry = 0;
-//    while (!getLocalTime(&timeinfo) && retry < 10) {
-//      Serial.println("Waiting for time...");
-//      delay(1000);
-//      retry++;
-//    }
-//  
-//    if (retry == 10) {
-//      Serial.println("Failed to get time from NTP.");
-//    } else {
-//      Serial.println("Time synced successfully!");
-//      Serial.print("Date: ");
-//      Serial.print(timeinfo.tm_year + 1900); Serial.print("-");
-//      Serial.print(timeinfo.tm_mon + 1);     Serial.print("-");
-//      Serial.print(timeinfo.tm_mday);        Serial.print("  ");
-//    
-//      Serial.print("Time: ");
-//      Serial.print(timeinfo.tm_hour);   Serial.print(":");
-//      Serial.print(timeinfo.tm_min);    Serial.print(":");
-//      Serial.println(timeinfo.tm_sec);
-//  
-//      char timeString[20];
-//      strftime(timeString, sizeof(timeString), "%Y-%m-%dT%H:%M:%S", &timeinfo);
-//      current_date = new DateTime(timeString);
-//      Serial.print("Current time: ");
-//      Serial.println(timeString);
-//    }
-//  
-//    char dateTimeString[20];
-//    char dateString[20];
-//    strftime(dateTimeString, sizeof(dateTimeString), "%Y-%m-%dT%H:%M:%S", &timeinfo);
-//    strftime(dateString, sizeof(dateString), "%Y-%m-%d", &timeinfo);
-//    current_date = new DateTime(dateTimeString);
 
 
     refreshDateTime(current_date);
@@ -858,15 +527,9 @@ void loop() {
     String dateString = "" + current_date->year + "-" + current_date->month + "-" + current_date->day;
     String hourString = String(current_date->hour.toInt() - 2 >= 0 ? current_date->hour.toInt() - 2 : current_date->hour.toInt());
     String dateTimeString = dateString + "T" + (hourString.length() == 1 ? "0" + hourString : hourString) + ":" + current_date->minute + ":" + current_date->second;
-  
-    //xmlRequest.replace("{start}", dateTimeString); // Replace the {start} with the current datetime
-    //xmlRequest.replace("{end}", dateString); // Replace the {end} with the current date
     
     xmlRequest.replace("{start}", dateForTestingDevelopment ? dateForTestingStart : dateTimeString); // Replace the {start} with the current datetime
     xmlRequest.replace("{end}", dateForTestingDevelopment ? dateForTestingEnd : dateString); // Replace the {end} with the current date
-    
-    //xmlRequest.replace("{start}", "2025-01-23T00:30:24"); // Replace the {start} with the current datetime
-    //xmlRequest.replace("{end}", "2025-01-23"); // Replace the {end} with the current date
   
     Serial.print("Connecting to website: ");
     Serial.println(API_SERVICE_ENDPOINT);
@@ -882,8 +545,6 @@ void loop() {
     if (httpResponseCode == 200) {
       Serial.println("API request Success");
       String body = https.getString();
-  //    Serial.print("200 got: ");
-  //    Serial.println(body);
       APIText = body;
       response = body;
       int itemsLength = 0;
@@ -892,79 +553,31 @@ void loop() {
       String* calendarItem = XMLParser(items[0], "<t:CalendarItem>", "</t:CalendarItem>", calendarItemLength);
       Event *eventList[calendarItemLength];
       for (int i = 0; i < calendarItemLength; i++){
-  //      Serial.print(i);
-  //      Serial.print(" : : ");
-  //      Serial.print(XMLGetter(calendarItem[i], "<t:Subject>", "</t:Subject>"));
-  //      Serial.print(", ");
-  //      Serial.print(XMLGetter(calendarItem[i], "<t:Start>", "</t:Start>"));
-  //      Serial.print(", ");
-  //      Serial.println(XMLGetter(calendarItem[i], "<t:End>", "</t:End>"));
-        Serial.println(XMLGetter(calendarItem[i], "<t:Subject>", "</t:Subject>"));
-        Serial.println();
         eventList[i] = new Event(
           replaceAccentChar(XMLGetter(calendarItem[i], "<t:Subject>", "</t:Subject>")),
           DateTime(XMLGetter(calendarItem[i], "<t:Start>", "</t:Start>")),
           DateTime(XMLGetter(calendarItem[i], "<t:End>", "</t:End>"))
         );
       }
-      for (int j = 0; j < calendarItemLength; j++){
-        Serial.print(j);
-        Serial.print(" =>>> ");
-        Serial.println(eventList[j]->subject);
-        Serial.print((eventList[j]->startDateTime).hour);
-        Serial.print(":");
-        Serial.println((eventList[j]->startDateTime).minute);
-        Serial.print((eventList[j]->endDateTime).hour);
-        Serial.print(":");
-        Serial.println((eventList[j]->endDateTime).minute);
-      }
   
       if (calendarItemLength != 0){
-        //bool isCurrent = isCurrentEvent(eventList[0], new DateTime("2025-01-23T10:30:00"));
         bool isCurrent = isCurrentEvent(eventList[0], current_date);
         String prefix = isCurrent ? "current : " : "next : ";
         if (calendarItemLength == 1){
-          //Check if current or not for text
-          //APIText = (eventList[0]->startDateTime).hour +":" + (eventList[0]->startDateTime).minute + " -> " + (eventList[0]->endDateTime).hour +":" + (eventList[0]->endDateTime).minute + "\n" + eventList[0]->subject;
           APIText = "> " + String((eventList[0]->startDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[0]->startDateTime).hour.toInt() + 2) : (eventList[0]->startDateTime).hour.toInt() + 2) +":" + (eventList[0]->startDateTime).minute + "-" + ((eventList[0]->endDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[0]->endDateTime).hour.toInt() + 2) : (eventList[0]->endDateTime).hour.toInt() + 2) +":" + (eventList[0]->endDateTime).minute + " " + eventList[0]->subject;
         }
         else{
-          //APIText = (eventList[0]->startDateTime).hour +":" + (eventList[0]->startDateTime).minute + " -> " + (eventList[0]->endDateTime).hour +":" + (eventList[0]->endDateTime).minute + "\n" + eventList[0]->subject;
-//          APIText = prefix + eventList[0]->subject + " - " + ((eventList[0]->startDateTime).hour.toInt() + 2) +":" + (eventList[0]->startDateTime).minute + " -> " + ((eventList[0]->endDateTime).hour.toInt() + 2) +":" + (eventList[0]->endDateTime).minute +
-//          " and after : " + eventList[1]->subject + " - " + ((eventList[1]->startDateTime).hour.toInt() + 2) +":" + (eventList[1]->startDateTime).minute + " -> " + ((eventList[1]->endDateTime).hour.toInt() + 2) +":" + (eventList[1]->endDateTime).minute;
           APIText = "";
           for (int i = 0; i < calendarItemLength; i++){
             String separator_string = i == 0 ? "> " : separator;
-            Serial.println("dd");
             String res = separator_string + ((eventList[i]->startDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[i]->startDateTime).hour.toInt() + 2) : (eventList[i]->startDateTime).hour.toInt() + 2) +":" + (eventList[i]->startDateTime).minute + "-" + ((eventList[i]->endDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[i]->endDateTime).hour.toInt() + 2) : (eventList[i]->endDateTime).hour.toInt() + 2) +":" + (eventList[i]->endDateTime).minute + " " + eventList[i]->subject;
-            Serial.println(res);
             APIText += res;
           }
         }
       }
       else{
         APIText = replaceAccentChar(noEventText);
-        Serial.println(APIText);
       }
-  
-      //2025-02-14T10:30:00
-      DateTime* date = new DateTime("2025-02-14T10:30:00");
-      Serial.println(date->year);
-      Serial.println(date->month);
-      Serial.println(date->day);
-  
-      Serial.println(date->hour);
-      Serial.println(date->minute);
-      Serial.println(date->second);
-  
-      Serial.println("current_date");
-      Serial.println(current_date->year);
-      Serial.println(current_date->month);
-      Serial.println(current_date->day);
-  
-      Serial.println(current_date->hour);
-      Serial.println(current_date->minute);
-      Serial.println(current_date->second);
     }
     else {
       Serial.print("Err: ");
@@ -972,91 +585,11 @@ void loop() {
       APIText = "Error check Serial";
       response = "Error check Serial";
     }
-  
-  
-  
-    Serial.println("Before Clear");
-  
-    
-    //EPD_Clear();                   // Clear the screen content, restoring it to its default state
-//    Paint_NewImage(Image_BW, EPD_W, EPD_H, 0, WHITE); // Create a new image buffer, size EPD_W x EPD_H, background color white
-//    EPD_Full(WHITE);              // Fill the entire canvas with white
-//    EPD_Display_Part(0, 0, EPD_W, EPD_H, Image_BW); // Display the image stored in the Image_BW array
-//  
-//    EPD_Init_Fast(Fast_Seconds_1_5s); // Quickly initialize the EPD screen, setting it to 1.5 second fast mode
 
 
+    Update_Display(resetString); //Refresh partial replace (replacing all writing area with space)
+    Update_Display(APIText);
 
-
-
-
-
-
-
-
-
-
-
-//    Paint_NewImage(Image_BW, EPD_W, EPD_H, 0, BLACK); // Create a new image buffer, size EPD_W x EPD_H, background color white
-//    EPD_Full(WHITE);              // Fill the entire canvas with white
-//    EPD_Display_Part(0, 0, EPD_W, EPD_H, Image_BW); // Display the image stored in the Image_BW array
-//  
-//    EPD_Init_Fast(Fast_Seconds_1_5s); // Quickly initialize the EPD screen, setting it to 1.5 second fast mode
-//  
-//    //EPD_ShowPicture(0, 0, 312, 152, gImage_1, WHITE); // Display image gImage_1, starting coordinates (0, 0), width 312, height 152, background color white
-//    EPD_ShowPicture(0, 0, 400, 80, EPFL_INN011_header, BLACK);
-//
-//    startY = 80 + 20;
-
-
-      Update_Display(resetString); //Refresh partial replace (replacing all writing area with space)
-      Update_Display(APIText);
-//    if (APIText != "No more events today"){
-//      if (APIText.indexOf(",") != -1){
-//        int len = 0;
-//        int maxElem = 2;
-//        maxElem = len < maxElem ? len : maxElem;
-//        String* APITextArray = Split(APIText, ",", len);
-//        if (len > 1){
-//          for (int i = 0; i < len; i++){
-//            Serial.println("a");
-//            Serial.println(APITextArray[i]);
-//            Serial.println(( i == 0 ? " > " : "   ") + APITextArray[i]);
-//            Part_Text_Display((( i == 0 ? " > " : "   ") + APITextArray[i]).c_str(), startX, startY, fontSize, BLACK, endX, endY);
-//          }
-//        }
-//        else if (len == 1){
-//          Serial.println("b");
-//          Serial.println(APIText);
-//          Serial.println(" > " + APIText);
-//          Part_Text_Display((" > " + APIText).c_str(), startX, startY, fontSize, BLACK, endX, endY);
-//        }
-//        else{
-//          Serial.println("c");
-//          Part_Text_Display("error", startX, startY, fontSize, BLACK, endX, endY);
-//        }
-//      }
-//      else{
-//        Serial.println("d");
-//        Serial.println(APIText);
-//        Serial.println(" > " + APIText);
-//        Part_Text_Display((" > " + APIText).c_str(), startX, startY, fontSize, BLACK, endX, endY);
-//      }
-//    }
-//    else{
-//      Serial.println("e");
-//      Part_Text_Display(APIText.c_str(), startX, startY, fontSize, BLACK, endX, endY);
-//    }
-//    //Part_Text_Display(APIText.c_str(), startX, startY, fontSize, BLACK, endX, endY);
-//
-//    String current_date_refresh = current_date->year + "-" + current_date->month + "-" + current_date->day + " " + current_date->hour + ":" + current_date->minute + ":" + current_date->second;
-//    EPD_ShowString(0, 11 * fontSize, ("last refresh: " + current_date_refresh).c_str(), fontSize, BLACK); 
-//    EPD_Display_Fast(Image_BW); // Quickly display the image stored in the Image_BW array
-//  
-//    EPD_Sleep();                // Set the screen to sleep mode to save power
-//
-//    Serial.println("After Clear");
-//
     refreshDateTime(before_refresh_date);
     manualRefresh = false;
   }
