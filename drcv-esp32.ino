@@ -38,10 +38,20 @@
 bool boutton_clicked = false;
 bool manualRefresh = false;
 
+bool dateForTestingDevelopment = false;
+String dateForTestingEnd = "2025-06-12";
+String dateForTestingStart = dateForTestingEnd + "T03:30:24";
+int dateIndents = 20;
+
 int counter = 0;
 
 String separator = ";;;";
 String resetString = " " + separator + " " + separator + " " + separator + " " + separator + " " + separator + " ";
+String noEventText = "Aucun événements aujourd'hui";
+String Loading_Message = "Connexion Wifi en cours" + separator + "Veuillez patienter...";
+String APIRequestText = "Récupération des données" + separator + "Veuillez patienter...";
+String APIText = "Default";
+String response = "Default";
 
 bool firstLaunch = true;
 int autoRefreshMinutes = 60; //Every hour
@@ -69,9 +79,6 @@ int fontSize = 24; // Font size
 int endX = 400;    // End horizontal axis
 int endY = 300;    // End vertical axis
 
-String Loading_Message = "Wifi Connection in progress" + separator + "please wait...";
-String APIText = "Default";
-String response = "Default";
 
 
 String xmlRequest = R"rawliteral(<?xml version="1.0" encoding="utf-8"?>
@@ -125,6 +132,8 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
     int lineHeight = fontSize;
 
     String mystring(content);
+
+    int initX = startX;
 
 //    Serial.println();
 //    Serial.println();
@@ -266,7 +275,7 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
 //      Serial.println((endX - currentX));
 //      Serial.print("ctLen * (fontSize/2) > (endX - currentX) : ");
 //      Serial.println(ctLen * (fontSize/2) > (endX - currentX));
-      if (ctLen * (fontSize/2) > (endX - currentX)){
+      if (ctLen * (fontSize/2) + initX > (endX - currentX)){
 //        Serial.println("Fill with space [reason=too long]");
         while (strTempLine.length() < (endX - startX) / (fontSize/2)) {
             strTempLine += ' ';
@@ -274,7 +283,7 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
         // Display this line
 //        Serial.print("strTempLine: ");
 //        Serial.println(strTempLine);
-        EPD_ShowString(0, currentY, strTempLine.c_str(), fontSize, color);
+        EPD_ShowString(initX, currentY, strTempLine.c_str(), fontSize, color);
         currentX = 0;
         lineLength = currentX;
         currentY += lineHeight;
@@ -323,7 +332,7 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
               strTempLine += ' ';
           }
           // Display this line
-          EPD_ShowString(0, currentY, strTempLine.c_str(), fontSize, color);
+          EPD_ShowString(initX, currentY, strTempLine.c_str(), fontSize, color);
           currentX = 0;
           lineLength = currentX;
           
@@ -414,6 +423,7 @@ void Update_Display(String APIText) {
             Serial.println("a");
             Serial.println(APITextArray[i]);
             Serial.println(APITextArray[i].c_str());
+            startX = APIText.indexOf(">") != -1 ? dateIndents : startX;
             Part_Text_Display(APITextArray[i].c_str(), startX, startY, fontSize, BLACK, endX, endY);
             startY = APIText.indexOf(">") != -1 ? (startY + fontSize / 2) : startY;
             //startY += fontSize / 2;
@@ -650,7 +660,7 @@ void setup() {
   
 
   Serial.println("Before Wifi text");
-  Update_Display(Loading_Message);
+  Update_Display(replaceAccentChar(Loading_Message));
   Serial.println("After Wifi text");
   
 
@@ -713,8 +723,7 @@ void setup() {
 
 
 void loop() {
-  Serial.print("current_date-> minute.toInt() (" + current_date-> minute + ") - before_refresh_date->minute.toInt() (" + before_refresh_date->minute + ") == autoRefreshMinutes " + String(autoRefreshMinutes) + " =>");
-  Serial.println(current_date-> minute.toInt() - before_refresh_date->minute.toInt() == autoRefreshMinutes);
+  Serial.print("~");
   unsigned long currentTime = millis();
   delay(100);
   
@@ -768,7 +777,7 @@ void loop() {
     //EPD_ShowString(0, 0 * fontSize, "Make API request", fontSize, BLACK); 
     //EPD_ShowString(0, 1 * fontSize, "Please wait...", fontSize, BLACK); 
     Serial.println("Before API request text");
-    Update_Display("Make API request" + separator + "Please wait...");
+    Update_Display(replaceAccentChar(APIRequestText));
     Serial.println("After API request text");
     //EPD_Display_Fast(Image_BW); // Quickly display the image stored in the Image_BW array
 
@@ -853,8 +862,8 @@ void loop() {
     //xmlRequest.replace("{start}", dateTimeString); // Replace the {start} with the current datetime
     //xmlRequest.replace("{end}", dateString); // Replace the {end} with the current date
     
-    xmlRequest.replace("{start}", "2025-06-11T03:30:24"); // Replace the {start} with the current datetime
-    xmlRequest.replace("{end}", "2025-06-11"); // Replace the {end} with the current date
+    xmlRequest.replace("{start}", dateForTestingDevelopment ? dateForTestingStart : dateTimeString); // Replace the {start} with the current datetime
+    xmlRequest.replace("{end}", dateForTestingDevelopment ? dateForTestingEnd : dateString); // Replace the {end} with the current date
     
     //xmlRequest.replace("{start}", "2025-01-23T00:30:24"); // Replace the {start} with the current datetime
     //xmlRequest.replace("{end}", "2025-01-23"); // Replace the {end} with the current date
@@ -911,9 +920,6 @@ void loop() {
       }
   
       if (calendarItemLength != 0){
-        Serial.println(isCurrentEvent(eventList[0], new DateTime("2025-01-23T10:30:00")) ? "is current" : "is not current");
-        Serial.println(isCurrentEvent(eventList[0], new DateTime("2025-01-23T11:00:00")) ? "is current" : "is not current");
-        Serial.println(isCurrentEvent(eventList[0], new DateTime("2025-01-23T11:01:00")) ? "is current" : "is not current");
         //bool isCurrent = isCurrentEvent(eventList[0], new DateTime("2025-01-23T10:30:00"));
         bool isCurrent = isCurrentEvent(eventList[0], current_date);
         String prefix = isCurrent ? "current : " : "next : ";
@@ -937,7 +943,7 @@ void loop() {
         }
       }
       else{
-        APIText = "No more events today";
+        APIText = replaceAccentChar(noEventText);
         Serial.println(APIText);
       }
   
