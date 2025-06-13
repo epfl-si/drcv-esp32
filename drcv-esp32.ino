@@ -233,6 +233,7 @@ void Update_Display(String APIText) {
         }
         else if (len == 1){
           Serial.println("b");
+          startX = dateIndents;
           Part_Text_Display(APIText.c_str(), startX, startY, fontSize, BLACK, endX, endY);
         }
         else{
