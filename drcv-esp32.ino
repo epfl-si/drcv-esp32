@@ -233,17 +233,17 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
     int leen = 0;
     String* test = Split("> 10:00-11:30 ISAS-FSD Seance de groupe", " ", leen);
 //
-    Serial.println();
-    Serial.println("HEEEEEEEEEEEEEELP");
-    Serial.print("leen: ");
-    Serial.println(leen);
-    for (int w = 0; w < leen; w++){
-      Serial.print(w);
-      Serial.print(": ");
-      Serial.println(test[w]);
-    }
-    Serial.println("HEEEEEEEEEEEEEELP");
-    Serial.println();
+//    Serial.println();
+//    Serial.println("HEEEEEEEEEEEEEELP");
+//    Serial.print("leen: ");
+//    Serial.println(leen);
+//    for (int w = 0; w < leen; w++){
+//      Serial.print(w);
+//      Serial.print(": ");
+//      Serial.println(test[w]);
+//    }
+//    Serial.println("HEEEEEEEEEEEEEELP");
+//    Serial.println();
 
 
     
@@ -255,25 +255,25 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
       String ct = SplitString[j];
       i = 0;
       int ctLen = ct.length();
-      Serial.println("");
-      Serial.println("in loop");
-      Serial.print(j);
-      Serial.print("/");
-      Serial.print(len - 1);
-      Serial.print("ctLen * (fontSize/2) : ");
-      Serial.println(ctLen * (fontSize/2));
-      Serial.print("(endX - currentX) : ");
-      Serial.println((endX - currentX));
-      Serial.print("ctLen * (fontSize/2) > (endX - currentX) : ");
-      Serial.println(ctLen * (fontSize/2) > (endX - currentX));
+//      Serial.println("");
+//      Serial.println("in loop");
+//      Serial.print(j);
+//      Serial.print("/");
+//      Serial.print(len - 1);
+//      Serial.print("ctLen * (fontSize/2) : ");
+//      Serial.println(ctLen * (fontSize/2));
+//      Serial.print("(endX - currentX) : ");
+//      Serial.println((endX - currentX));
+//      Serial.print("ctLen * (fontSize/2) > (endX - currentX) : ");
+//      Serial.println(ctLen * (fontSize/2) > (endX - currentX));
       if (ctLen * (fontSize/2) > (endX - currentX)){
-        Serial.println("Fill with space [reason=too long]");
+//        Serial.println("Fill with space [reason=too long]");
         while (strTempLine.length() < (endX - startX) / (fontSize/2)) {
             strTempLine += ' ';
         }
         // Display this line
-        Serial.print("strTempLine: ");
-        Serial.println(strTempLine);
+//        Serial.print("strTempLine: ");
+//        Serial.println(strTempLine);
         EPD_ShowString(0, currentY, strTempLine.c_str(), fontSize, color);
         currentX = 0;
         lineLength = currentX;
@@ -282,16 +282,16 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
         j--;
       }
       else{
-        Serial.print("ct : ");
-        Serial.println(ct);
-
-        Serial.print("BefcurrentX: ");
-        Serial.println(currentX);
-        Serial.print("BefcurrentY: ");
-        Serial.println(currentY);
-
-        Serial.print("ctlen : ");
-        Serial.println(ctLen);
+//        Serial.print("ct : ");
+//        Serial.println(ct);
+//
+//        Serial.print("BefcurrentX: ");
+//        Serial.println(currentX);
+//        Serial.print("BefcurrentY: ");
+//        Serial.println(currentY);
+//
+//        Serial.print("ctlen : ");
+//        Serial.println(ctLen);
 
         
         //memset(line, 0, sizeof(line));
@@ -318,7 +318,7 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
         }
 
         if (j == len - 1){
-          Serial.println("Fill with space [reason=finish]");
+//          Serial.println("Fill with space [reason=finish]");
           while (strTempLine.length() < (endX - startX) / (fontSize/2)) {
               strTempLine += ' ';
           }
@@ -327,19 +327,19 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
           currentX = 0;
           lineLength = currentX;
           
-          Serial.print("strTempLine: ");
-          Serial.println(strTempLine);
+//          Serial.print("strTempLine: ");
+//          Serial.println(strTempLine);
           currentY += lineHeight;  
           strTempLine = "";       
         }
 
-        Serial.print("strTempLineLength: ");
-        Serial.println(strTempLine.length());
-
-        Serial.print("currentX: ");
-        Serial.println(currentX);
-        Serial.print("currentY: ");
-        Serial.println(currentY);
+//        Serial.print("strTempLineLength: ");
+//        Serial.println(strTempLine.length());
+//
+//        Serial.print("currentX: ");
+//        Serial.println(currentX);
+//        Serial.print("currentY: ");
+//        Serial.println(currentY);
       }
     }
         
@@ -389,13 +389,14 @@ void refreshDateTime(DateTime* &datetime){
 
 
 void Update_Display(String APIText) {
+    //EPD_ShowPicture(0, 0, 400, 80, EPFL_INN011_header, BLACK);
+  
+    startY = 80 + 20;
+
     Serial.print("Inside update_display : ");
     Serial.println(APIText);
     Serial.println(startX);
     Serial.println(startY);
-    //EPD_ShowPicture(0, 0, 400, 80, EPFL_INN011_header, BLACK);
-  
-    startY = 80 + 20;
 
     if (APIText != "No more events today"){
       if (APIText.indexOf(separator) != -1){
@@ -413,8 +414,9 @@ void Update_Display(String APIText) {
             Serial.println("a");
             Serial.println(APITextArray[i]);
             Serial.println(APITextArray[i].c_str());
-            startY = APIText.indexOf(">") != -1 ? (startY + fontSize / 2) : startY;
             Part_Text_Display(APITextArray[i].c_str(), startX, startY, fontSize, BLACK, endX, endY);
+            startY = APIText.indexOf(">") != -1 ? (startY + fontSize / 2) : startY;
+            //startY += fontSize / 2;
           }
         }
         else if (len == 1){
