@@ -1,36 +1,74 @@
-# Quel est ce projet ?
+# Summary
+
+<!-- Put after theses lines, ctrl + shift + p and write "Markdown" and click to "Markdwon all ine one" extension -->
+<!-- TOC -->
+<!-- TOC END -->
+- [Summary](#summary)
+- [❓ Quel est ce projet](#-quel-est-ce-projet)
+- [🧩 Functions créées pour ce projet](#-functions-créées-pour-ce-projet)
+- [🤔 Comment utiliser ce projet](#-comment-utiliser-ce-projet)
+  - [🛠️ Prérequis](#️-prérequis)
+  - [⚙️ Configuration](#️-configuration)
+    - [🤖 Board Manager](#-board-manager)
+    - [🔌 Board and Port](#-board-and-port)
+    - [📚 Libraries](#-libraries)
+- [⛓️ Liens utiles](#️-liens-utiles)
+
+
+
+# ❓ Quel est ce projet
 
 Le projet DRCV, autrement dit "Dsi Room Calendar View" est un mini projet ayant pour but d'afficher sur un écran Eink (ref de l'écran - [Elecrow CrowPanel E-Paper 4.2"](https://www.berrybase.ch/fr/elecrow-crowpanel-e-paper-hmi-display-4.2-zoll-400x300-aufloesung-esp32-s3-spi-schwarz-weiss)) les réservations actuelles et à venir de nos salles de conférence.
 
-# Comment utiliser ce projet ?
+# 🧩 Functions créées pour ce projet
 
-## Prérequis
+[Split](./README_SPLIT.md)
+
+[DateTime](./README_DATETIME.md)
+
+# 🤔 Comment utiliser ce projet
+
+## 🛠️ Prérequis
 
 Afin d'effectuer ce projet, plusieurs choses sont indispensables :
 
 - Écran e-ink ou autre type d'écran (ici e-ink)
-- ESP32 ou autre microcontrôleur pouvant être connecté à un réseau et donceffectuer des requêtes HTTP (ici, utilisation d'un ESP32 intégré à l'écran e-ink [Elecrow CrowPanel E-Paper 4.2"](https://www.berrybase.ch/fr/elecrow-crowpanel-e-paper-hmi-display-4.2-zoll-400x300-aufloesung-esp32-s3-spi-schwarz-weiss))
+- ESP32 ou autre microcontrôleur pouvant être connecté à un réseau et donc effectuer des requêtes HTTP (ici, utilisation d'un ESP32 intégré à l'écran e-ink [Elecrow CrowPanel E-Paper 4.2"](https://www.berrybase.ch/fr/elecrow-crowpanel-e-paper-hmi-display-4.2-zoll-400x300-aufloesung-esp32-s3-spi-schwarz-weiss))
 - API pour récupérer les données à afficher (ici, utilisation de l'API SOAP d'EWS)
 
-## Configuration
+## ⚙️ Configuration
 
-> [!NOTE] Fichiers du projet
+> [!NOTE]
 > Les fichiers du projets sont `drcv-esp32.ino` et `secrets.h.example`. Les autres fichiers sont les fichiers de librairies.
 
-> [!WARNING] Noms
+> [!WARNING]
 > Pensez impérativement avant d'utiliser ce code, à modifier le nom du fichier `secrets.h.example` en `secrets.h`, ainsi que de remplir les champs dans le fichier.
 
-### Board and Port :
+### 🤖 Board Manager
 
-| Type |  Name |
-| :--: | :--: |
-| Board | ESP32S3 Dev Module |
-| Port | /dev/ttyUSB0 |
+Files > Preferences
 
-### Libraries :
+Additional Boards Manager URLs: https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-> [!NOTE] Librairies du projet
+Tools > Board > Boards Manager...
+
+Recher `esp32` créé par **Espressif Systems** et installe-le
+
+>[!NOTE]
+>Pour ma part, seulement la version 3.0.7 ou les antérieures fonctionnent correctement, et non les plus récente.
+
+### 🔌 Board and Port
+
+| Type |  Name | Manipulation de changement |
+| :--: | :--: | :--: |
+| Board | ESP32S3 Dev Module | Tools > Board > ESP32 Arduino > ESP32S3 Dev Module |
+| Port | /dev/ttyUSB0 | Tools > Port > /dev/ttyUSB0 |
+
+### 📚 Libraries
+
+> [!NOTE]
 > Certaines méthodes comme le `XMLParser` ou encore le `Split` sont handmade.
+> Les différentes documentations de ceux-ci sont référé [ici](#🧩-functions-créées-pour-ce-projet)
 
 | Name |  Creator | Version |
 | :--: | :--: | :--: |
@@ -38,6 +76,6 @@ Afin d'effectuer ce projet, plusieurs choses sont indispensables :
 | Wifi101 | Arduino | 0.16.1 |
 | Base64 | Arturo Guadalupi | 1.0.2 |
 
-# Liens utiles
+# ⛓️ Liens utiles
 
 - [Convertisseur d'image en image arduino](https://javl.github.io/image2cpp/)

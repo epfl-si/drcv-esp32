@@ -2,7 +2,9 @@
 
 ## SYNTHAX
 
-String* \<varname> = Split(\<string text>, \<separator>);
+```arduino
+String* <varname> = Split(<String text>, <String separator> <Int length_result>);
+```
 
 ## USAGES
 

@@ -6,7 +6,9 @@ This class required the `Split()` function of this project
 
 ## SYNTHAX
 
-DateTime* \<varname> = new DateTime(\<ISO 8601 datetime string>);
+```arduino
+DateTime* <varname> = new DateTime(<ISO 8601 datetime string>);
+```
 
 ## USAGES
 
