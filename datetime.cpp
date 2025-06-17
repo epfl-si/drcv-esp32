@@ -4,6 +4,9 @@
 
 DateTime::DateTime(String datetimeString) {
   int datetimeArrayLength = 0;
+  while ((datetimeString.indexOf("Z")) != -1) {
+    datetimeString.remove(datetimeString.indexOf("Z"), 1);
+  }
   String* datetimeArray = Split(datetimeString, "T", datetimeArrayLength);
 
   int dateArrayLength = 0;
