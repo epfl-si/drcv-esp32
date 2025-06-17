@@ -107,6 +107,22 @@ String xmlRequest = R"rawliteral(<?xml version="1.0" encoding="utf-8"?>
   </soap:Envelope>)rawliteral";
 
 
+ String xmlRequestGetName = R"rawliteral(<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+  <soap:Header>
+    <t:RequestServerVersion Version="Exchange2013" />
+  </soap:Header>
+  <soap:Body>
+    <ResolveNames xmlns="http://schemas.microsoft.com/exchange/services/2006/messages"
+      ReturnFullContactData="true"
+      SearchScope="ActiveDirectory">
+      <UnresolvedEntry>{email}</UnresolvedEntry>
+    </ResolveNames>
+  </soap:Body>
+</soap:Envelope>)rawliteral";
+
+
 /*
 *---------Function description: Display text content locally------------
 *----Parameter introduction:
@@ -397,8 +413,6 @@ void setup() {
   EPD_Update();
  
   EPD_ShowPicture(0, 0, 400, 80, EPFL_INN011_header, BLACK);
-
-  EPD_ShowString(20, 40, "INN 011 - Tabulation", 24, WHITE);
   
   EPD_ShowPicture(400 - 32, 300 - 32 - 16, 32, 32, epd_bitmap_refresh, BLACK);
   
@@ -434,6 +448,28 @@ void setup() {
   Serial.println("IP address set: ");
   Serial.println(WiFi.localIP());  //print LAN IP
 
+  HTTPClient https;
+  https.begin(API_SERVICE_ENDPOINT);
+  https.addHeader("Content-Type", "text/xml");
+  https.setAuthorization(API_USERNAME, API_PASSWORD);
+  xmlRequestGetName.replace("{email}", API_EMAIL_TARGET);
+  int httpResponseCode  = 0;
+  while (httpResponseCode != 200){
+    Serial.println("Get room name");
+    httpResponseCode = https.POST(xmlRequestGetName);
+    Serial.print("code: ");
+    Serial.println(httpResponseCode);
+  
+    if (httpResponseCode == 200) {
+      String body = https.getString();
+      int itemsLength = 0;
+      String* items = XMLParser(body, "<t:Contact>", "</t:Contact>", itemsLength);
+      EPD_ShowString(20, 40, replaceAccentChar(XMLGetter(items[0], "<t:DisplayName>", "</t:DisplayName>")).c_str(), 24, WHITE);
+    }
+    else{
+      delay(1000);
+    }
+  }
   refreshDateTime(current_date);
   refreshDateTime(before_refresh_date);
 }
