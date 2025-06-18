@@ -34,12 +34,13 @@ bool boutton_clicked = false;
 bool manualRefresh = false;
 
 bool dateForTestingDevelopment = false;
-String dateForTestingEnd = "2025-06-12";
+String dateForTestingEnd = "2025-06-18"; //2025-06-12
 String dateForTestingStart = dateForTestingEnd + "T03:30:24";
 int dateIndents = 20;
 
 int counter = 0;
 
+String prefixString = "> ";
 String separator = ";;;";
 String resetString = " " + separator + " " + separator + " " + separator + " " + separator + " " + separator + " ";
 String noEventText = "Aucun événements aujourd'hui";
@@ -68,6 +69,7 @@ DateTime* before_refresh_date = new DateTime("2025-05-26T08:30:00");
 
 uint8_t Image_BW[15000];    // Declare an array of 15000 bytes to store black and white image data
 
+int beforeStartX = 0;
 int startX = 0; // Starting horizontal axis
 int startY = 0;  // Starting vertical axis
 int fontSize = 24; // Font size
@@ -155,15 +157,42 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
       i = 0;
       int ctLen = ct.length();
       if (ctLen * (fontSize/2) + initX > (endX - currentX)){
-        while (strTempLine.length() < (endX - startX) / (fontSize/2)) {
-            strTempLine += ' ';
+        if (ctLen * (fontSize/2) > (endX - currentX)){ //Check if word if larger than one line
+          int ctLengthPart = 0;
+          while (ctLengthPart < ct.length()){
+            //int pxAvailableForCurrentLine = (endX - currentX) - (ctLen * (fontSize/2) + initX);
+            int pxAvailableForCurrentLine = (endX - currentX) - initX;
+            //int pxUsedForCurrentLine = ;
+            int indexIfSeparator = (ct.substring(ctLengthPart, ct.length() - 1)).length() * (fontSize/2) > pxAvailableForCurrentLine ? 1 : 0;
+            int indexMaxAcceptedForCurrentLine = (pxAvailableForCurrentLine) / (fontSize/2) - indexIfSeparator ;
+            int indexForCutString = indexMaxAcceptedForCurrentLine < ct.length() - indexIfSeparator - ctLengthPart ? indexMaxAcceptedForCurrentLine : ct.length() - indexIfSeparator - ctLengthPart;
+            String CurrentLine = ct.substring(ctLengthPart, ctLengthPart + indexForCutString);
+            ctLengthPart += CurrentLine.length();
+            CurrentLine += (indexIfSeparator == 1 ? "-" : "");
+            Serial.println();
+            Serial.println(pxAvailableForCurrentLine);
+            Serial.println(indexMaxAcceptedForCurrentLine);
+            Serial.println(indexForCutString);
+            Serial.println(CurrentLine);
+            Serial.println(ctLengthPart);
+            Serial.println(ct.length());            
+            Serial.println();
+            EPD_ShowString(initX, currentY, CurrentLine.c_str(), fontSize, color);
+            currentY += lineHeight;
+          }
+          strTempLine = "";
         }
-        EPD_ShowString(initX, currentY, strTempLine.c_str(), fontSize, color);
-        currentX = 0;
-        lineLength = currentX;
-        currentY += lineHeight;
-        strTempLine = "";
-        j--;
+        else{
+          while (strTempLine.length() < (endX - startX) / (fontSize/2)) {
+              strTempLine += ' ';
+          }
+          EPD_ShowString(initX, currentY, strTempLine.c_str(), fontSize, color);
+          currentX = 0;
+          lineLength = currentX;
+          currentY += lineHeight;
+          strTempLine = "";
+          j--; 
+        }
       }
       else{
         strTempLine += ct;
@@ -225,7 +254,8 @@ void refreshDateTime(DateTime* &datetime){
 
 void Update_Display(String APIText) {
   
-    startY = 80 + 20;
+    startY = 80 + 20; 
+    beforeStartX = startX;
 
     Serial.print("Inside update_display : ");
     Serial.println(APIText);
@@ -242,9 +272,9 @@ void Update_Display(String APIText) {
         if (len > 1){
           for (int i = 0; i < maxElem; i++){
             Serial.println("a");
-            startX = APIText.indexOf(">") != -1 ? dateIndents : startX;
+            startX = APIText.indexOf(prefixString) != -1 ? dateIndents : startX;
             Part_Text_Display(APITextArray[i].c_str(), startX, startY, fontSize, BLACK, endX, endY);
-            startY = APIText.indexOf(">") != -1 ? (startY + fontSize / 2) : startY;
+            startY = APIText.indexOf(prefixString) != -1 ? (startY + fontSize / 2) : startY;
           }
         }
         else if (len == 1){
@@ -259,6 +289,7 @@ void Update_Display(String APIText) {
       }
       else{
         Serial.println("d");
+        startX = APIText.indexOf(prefixString) != -1 ? dateIndents : startX;
         Part_Text_Display(APIText.c_str(), startX, startY, fontSize, BLACK, endX, endY);
       }
     }
@@ -601,12 +632,12 @@ void loop() {
         bool isCurrent = isCurrentEvent(eventList[0], current_date);
         String prefix = isCurrent ? "current : " : "next : ";
         if (calendarItemLength == 1){
-          APIText = "> " + String((eventList[0]->startDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[0]->startDateTime).hour.toInt() + 2) : (eventList[0]->startDateTime).hour.toInt() + 2) +":" + (eventList[0]->startDateTime).minute + "-" + ((eventList[0]->endDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[0]->endDateTime).hour.toInt() + 2) : (eventList[0]->endDateTime).hour.toInt() + 2) +":" + (eventList[0]->endDateTime).minute + " " + eventList[0]->subject;
+          APIText = prefixString + String((eventList[0]->startDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[0]->startDateTime).hour.toInt() + 2) : (eventList[0]->startDateTime).hour.toInt() + 2) +":" + (eventList[0]->startDateTime).minute + "-" + ((eventList[0]->endDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[0]->endDateTime).hour.toInt() + 2) : (eventList[0]->endDateTime).hour.toInt() + 2) +":" + (eventList[0]->endDateTime).minute + " " + eventList[0]->subject;
         }
         else{
           APIText = "";
           for (int i = 0; i < calendarItemLength; i++){
-            String separator_string = i == 0 ? "> " : separator;
+            String separator_string = i == 0 ? prefixString : separator;
             String res = separator_string + ((eventList[i]->startDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[i]->startDateTime).hour.toInt() + 2) : (eventList[i]->startDateTime).hour.toInt() + 2) +":" + (eventList[i]->startDateTime).minute + "-" + ((eventList[i]->endDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[i]->endDateTime).hour.toInt() + 2) : (eventList[i]->endDateTime).hour.toInt() + 2) +":" + (eventList[i]->endDateTime).minute + " " + eventList[i]->subject;
             APIText += res;
           }
