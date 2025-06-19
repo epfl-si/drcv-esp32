@@ -34,7 +34,7 @@ bool boutton_clicked = false;
 bool manualRefresh = false;
 
 bool dateForTestingDevelopment = false;
-String dateForTestingEnd = "2025-06-18"; //2025-06-12
+String dateForTestingEnd = "2025-06-11"; //2025-06-12
 String dateForTestingStart = dateForTestingEnd + "T03:30:24";
 int dateIndents = 20;
 
@@ -150,14 +150,15 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
     
     int len = 0;
     int lineLength = 0;
+    int indentLocale = 0;
     String* SplitString = Split(content, " ", len);
     String strTempLine = "";
     for (int j = 0; j < len; j++){
       String ct = SplitString[j];
       i = 0;
       int ctLen = ct.length();
-      if (ctLen * (fontSize/2) + initX > (endX - currentX)){
-        if (ctLen * (fontSize/2) > (endX - currentX)){ //Check if word if larger than one line
+      if (ctLen * (fontSize/2) + initX + indentLocale > (endX - currentX)){
+        if (ctLen * (fontSize/2) > (endX - initX + indentLocale)){ //Check if word if larger than one line
           int ctLengthPart = 0;
           while (ctLengthPart < ct.length()){
             //int pxAvailableForCurrentLine = (endX - currentX) - (ctLen * (fontSize/2) + initX);
@@ -169,15 +170,8 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
             String CurrentLine = ct.substring(ctLengthPart, ctLengthPart + indexForCutString);
             ctLengthPart += CurrentLine.length();
             CurrentLine += (indexIfSeparator == 1 ? "-" : "");
-            Serial.println();
-            Serial.println(pxAvailableForCurrentLine);
-            Serial.println(indexMaxAcceptedForCurrentLine);
-            Serial.println(indexForCutString);
-            Serial.println(CurrentLine);
-            Serial.println(ctLengthPart);
-            Serial.println(ct.length());            
-            Serial.println();
-            EPD_ShowString(initX, currentY, CurrentLine.c_str(), fontSize, color);
+            indentLocale = prefixString.length() * fontSize / 2;
+            EPD_ShowString(initX + indentLocale, currentY, CurrentLine.c_str(), fontSize, color);
             currentY += lineHeight;
           }
           strTempLine = "";
@@ -186,7 +180,8 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
           while (strTempLine.length() < (endX - startX) / (fontSize/2)) {
               strTempLine += ' ';
           }
-          EPD_ShowString(initX, currentY, strTempLine.c_str(), fontSize, color);
+          EPD_ShowString(initX + indentLocale, currentY, strTempLine.c_str(), fontSize, color);
+          indentLocale = prefixString.length() * fontSize / 2;
           currentX = 0;
           lineLength = currentX;
           currentY += lineHeight;
@@ -209,8 +204,10 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
           while (strTempLine.length() < (endX - startX) / (fontSize/2)) {
               strTempLine += ' ';
           }
+          initX = (initX == 0 ? fontSize : initX);
           // Display this line
-          EPD_ShowString(initX, currentY, strTempLine.c_str(), fontSize, color);
+          EPD_ShowString(initX + indentLocale, currentY, strTempLine.c_str(), fontSize, color);
+          indentLocale = prefixString.length() * fontSize / 2;
           currentX = 0;
           lineLength = currentX;
           currentY += lineHeight;  
@@ -255,7 +252,7 @@ void refreshDateTime(DateTime* &datetime){
 void Update_Display(String APIText) {
   
     startY = 80 + 20; 
-    beforeStartX = startX;
+    bool firstLine = true && APIText.indexOf(prefixString) != -1;
 
     Serial.print("Inside update_display : ");
     Serial.println(APIText);
@@ -272,8 +269,12 @@ void Update_Display(String APIText) {
         if (len > 1){
           for (int i = 0; i < maxElem; i++){
             Serial.println("a");
-            startX = APIText.indexOf(prefixString) != -1 ? dateIndents : startX;
+            //startX = APIText.indexOf(prefixString) != -1 ? dateIndents : startX;
             Part_Text_Display(APITextArray[i].c_str(), startX, startY, fontSize, BLACK, endX, endY);
+            
+            startX = (firstLine ? prefixString.length() * fontSize / 2 : 0); //FAIRE LIGNE QUE prefixString.length() * fontSize / 2 SI PAS 1ère ligne ET QUE CELEL CI CONTENANT prefixString
+            //firstLine = (firstLine ? !firstLine : firstLine);
+            
             startY = APIText.indexOf(prefixString) != -1 ? (startY + fontSize / 2) : startY;
           }
         }
@@ -289,7 +290,7 @@ void Update_Display(String APIText) {
       }
       else{
         Serial.println("d");
-        startX = APIText.indexOf(prefixString) != -1 ? dateIndents : startX;
+        //startX = APIText.indexOf(prefixString) != -1 ? dateIndents : startX;
         Part_Text_Display(APIText.c_str(), startX, startY, fontSize, BLACK, endX, endY);
       }
     }
