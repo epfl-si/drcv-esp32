@@ -33,9 +33,9 @@
 bool boutton_clicked = false;
 bool manualRefresh = false;
 
-bool dateForTestingDevelopment = false;
+bool dateForTestingDevelopment = true;
 String dateForTestingEnd = "2025-06-11"; //2025-06-12
-String dateForTestingStart = dateForTestingEnd + "T03:30:24";
+String dateForTestingStart = dateForTestingEnd + "T12:30:24";
 int dateIndents = 20;
 
 int counter = 0;
@@ -64,8 +64,8 @@ const int daylightOffset_sec = 0;
 
 struct tm timeinfo;
 
-DateTime* current_date = new DateTime("2025-05-26T08:30:00");
-DateTime* before_refresh_date = new DateTime("2025-05-26T08:30:00");
+DateTime* current_date = new DateTime("2025-05-26T03:30:00");
+DateTime* before_refresh_date = new DateTime("2025-05-26T03:30:00");
 
 uint8_t Image_BW[15000];    // Declare an array of 15000 bytes to store black and white image data
 
@@ -170,7 +170,7 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
             String CurrentLine = ct.substring(ctLengthPart, ctLengthPart + indexForCutString);
             ctLengthPart += CurrentLine.length();
             CurrentLine += (indexIfSeparator == 1 ? "-" : "");
-            indentLocale = prefixString.length() * fontSize / 2;
+            indentLocale = prefixString.length() * fontSize / 2 * ((String(content).indexOf(prefixString) != -1) ? 2 : 1);
             EPD_ShowString(initX + indentLocale, currentY, CurrentLine.c_str(), fontSize, color);
             currentY += lineHeight;
           }
@@ -181,7 +181,7 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
               strTempLine += ' ';
           }
           EPD_ShowString(initX + indentLocale, currentY, strTempLine.c_str(), fontSize, color);
-          indentLocale = prefixString.length() * fontSize / 2;
+          indentLocale = prefixString.length() * fontSize / 2 * ((String(content).indexOf(prefixString) != -1) ? 2 : 1);
           currentX = 0;
           lineLength = currentX;
           currentY += lineHeight;
@@ -204,10 +204,9 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
           while (strTempLine.length() < (endX - startX) / (fontSize/2)) {
               strTempLine += ' ';
           }
-          initX = (initX == 0 ? fontSize : initX);
           // Display this line
           EPD_ShowString(initX + indentLocale, currentY, strTempLine.c_str(), fontSize, color);
-          indentLocale = prefixString.length() * fontSize / 2;
+          indentLocale = prefixString.length() * fontSize / 2 * ((String(content).indexOf(prefixString) != -1) ? 2 : 1);
           currentX = 0;
           lineLength = currentX;
           currentY += lineHeight;  
