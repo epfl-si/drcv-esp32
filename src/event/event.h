@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "datetime.h" // Include DateTime custom class
+#include "../datetime/datetime.h" // Include DateTime custom class
 
 #ifndef EVENT_H
 #define EVENT_H

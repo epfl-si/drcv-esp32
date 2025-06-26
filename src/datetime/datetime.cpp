@@ -1,6 +1,6 @@
 #include "Arduino.h"
 #include "datetime.h"
-#include "split.h" // Include my Split method
+#include "../src/split/split.h" // Include my Split method
 
 DateTime::DateTime(String datetimeString) {
   int datetimeArrayLength = 0;
@@ -13,7 +13,7 @@ DateTime::DateTime(String datetimeString) {
   int timeArrayLength = 0;
   String* dateArray = Split(datetimeArray[0], "-", dateArrayLength);
   String* timeArray = Split(datetimeArray[1], ":", timeArrayLength);
-  
+
   year = dateArray[0];
   month = dateArray[1];
   day = dateArray[2];

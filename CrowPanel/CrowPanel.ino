@@ -7,12 +7,19 @@
 #error "WPA-Enterprise is only supported in SoCs with native Wi-Fi support"
 #endif
 #include <WiFiClientSecure.h>
-#include "secrets.h"  // Include the secrets.h file for WiFi credentials
+#include "../src/secrets.h"  // Include the secrets.h file for WiFi credentials
 
-#include "xml_parser.h" // Include my xml parser method
-#include "split.h" // Include my Split method
-#include "event.h" // Include Event custom class
-#include "datetime.h" // Include DateTime custom class
+#include "../src/xml_parser/xml_parser.h" // Include my xml parser method
+#include "../src/xml_parser/xml_parser.cpp" // Include my xml parser method
+
+#include "../src/split/split.h" // Include my Split method
+#include "../src/split/split.cpp" // Include my Split method
+
+#include "../src/event/event.h" // Include Event custom class
+#include "../src/event/event.cpp" // Include Event custom class
+
+#include "../src/datetime/datetime.h" // Include DateTime custom class
+#include "../src/datetime/datetime.cpp" // Include DateTime custom class
 
 #include <Base64.h>
 #include <ArduinoHttpClient.h>
@@ -33,7 +40,7 @@
 bool boutton_clicked = false;
 bool manualRefresh = false;
 
-bool dateForTestingDevelopment = false;
+bool dateForTestingDevelopment = true;
 String dateForTestingEnd = "2025-06-11"; //2025-06-12
 String dateForTestingStart = dateForTestingEnd + "T12:30:24";
 int dateIndents = 20;
