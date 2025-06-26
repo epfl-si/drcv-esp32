@@ -5,6 +5,7 @@
 <!-- TOC END -->
 - [Summary](#summary)
 - [🤔 Comment utiliser ce projet](#-comment-utiliser-ce-projet)
+  - [🪪 Référence](#-référence)
   - [🛠️ Prérequis](#️-prérequis)
   - [⚙️ Configuration](#️-configuration)
     - [🤖 Board Manager](#-board-manager)
@@ -12,6 +13,10 @@
     - [📚 Libraries](#-libraries)
 
 # 🤔 Comment utiliser ce projet
+
+## 🪪 Référence
+
+[Elecrow CrowPanel E-Paper 4.2"](https://www.berrybase.ch/fr/elecrow-crowpanel-e-paper-hmi-display-4.2-zoll-400x300-aufloesung-esp32-s3-spi-schwarz-weiss)
 
 ## 🛠️ Prérequis
 
@@ -53,7 +58,7 @@ Recher `esp32` créé par **Espressif Systems** et installe-le
 
 > [!NOTE]
 > Certaines méthodes comme le `XMLParser` ou encore le `Split` sont handmade.
-> Les différentes documentations de ceux-ci sont référé [ici](#🧩-functions-créées-pour-ce-projet)
+> Les différentes documentations de ceux-ci sont référé [ici](../README.md#🧩-functions-créées-pour-ce-projet)
 
 | Name |  Creator | Version |
 | :--: | :--: | :--: |

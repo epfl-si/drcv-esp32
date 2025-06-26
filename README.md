@@ -6,23 +6,27 @@
 - [Summary](#summary)
 - [❓ Quel est ce projet](#-quel-est-ce-projet)
   - [📁 Projet sur différent écran](#-projet-sur-différent-écran)
-  - [🧩 Functions créées pour ce projet](#-functions-créées-pour-ce-projet)
+  - [🧩 Classes et functions créées pour ce projet](#-classes-et-functions-créées-pour-ce-projet)
   - [⛓️ Liens utiles](#️-liens-utiles)
 
 
 # ❓ Quel est ce projet
 
-Le projet DRCV, autrement dit "Dsi Room Calendar View" est un mini projet ayant pour but d'afficher sur un écran E-ink (ref de l'écran - [Elecrow CrowPanel E-Paper 4.2"](https://www.berrybase.ch/fr/elecrow-crowpanel-e-paper-hmi-display-4.2-zoll-400x300-aufloesung-esp32-s3-spi-schwarz-weiss)) les réservations actuelles et à venir de nos salles de conférence.
+Le projet DRCV, autrement dit "Dsi Room Calendar View" est un mini projet ayant pour but d'afficher sur un écran E-ink les réservations actuelles et à venir de nos salles de conférence.
 
 ## 📁 Projet sur différent écran
 
-- [CrowPanel ESP32 4.2" E-paper](/CrowPanel/README.md)
+- [CrowPanel ESP32 4.2" E-paper](./CrowPanel/)
 
-## 🧩 Functions créées pour ce projet
+## 🧩 Classes et functions créées pour ce projet
 
-- [Split](./Functions/Split/README_SPLIT.md)
+- [Split](./src/split/)
 
-- [DateTime](./Functions/DateTime/README_DATETIME.md)
+- [DateTime](./src/datetime/)
+
+- [Event](./src/event/)
+
+- [XML_Parser](./src/xml_parser/)
 
 ## ⛓️ Liens utiles
 
