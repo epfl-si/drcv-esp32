@@ -29,6 +29,7 @@
 #include <Arduino.h>        // Include the core library for Arduino platform development
 #include "EPD.h"            // Include the EPD library to control the E-Paper Display
 #include "pic_scenario.h"   // Include the header file containing image data
+#include "../src/variables.h"   // Include the header file containing text variables
 
 // Define button pins
 #define BUTTON_DOWN 1
@@ -40,19 +41,14 @@
 bool boutton_clicked = false;
 bool manualRefresh = false;
 
-bool dateForTestingDevelopment = true;
+bool dateForTestingDevelopment = false;
 String dateForTestingEnd = "2025-06-11"; //2025-06-12
 String dateForTestingStart = dateForTestingEnd + "T12:30:24";
 int dateIndents = 20;
 
 int counter = 0;
 
-String prefixString = "> ";
-String separator = ";;;";
 String resetString = " " + separator + " " + separator + " " + separator + " " + separator + " " + separator + " ";
-String noEventText = "Aucun événements aujourd'hui";
-String Loading_Message = "Connexion Wifi en cours" + separator + "Veuillez patienter...";
-String APIRequestText = "Récupération des données" + separator + "Veuillez patienter...";
 String APIText = "Default";
 String response = "Default";
 
