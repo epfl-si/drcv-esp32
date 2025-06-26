@@ -391,7 +391,7 @@ String replaceAccentChar(String text) {
     {"ñ", "n"}, {"ń", "n"}, {"ň", "n"},
     {"Ñ", "N"}, {"Ń", "N"}, {"Ň", "N"},
 
-    {"ß", "ss"}, {"œ", "oe"}, {"Œ", "OE"}, {"æ", "ae"}, {"Æ", "AE"}
+    {"ß", "B"}, {"œ", "oe"}, {"Œ", "OE"}, {"æ", "ae"}, {"Æ", "AE"}, {"&amp;", "&"}
   };
 
   int len = sizeof(dict) / sizeof(dict[0]);
