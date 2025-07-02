@@ -34,6 +34,8 @@
 #include "pic_scenario.h"   // Include the header file containing image data
 #include "../src/variables.h"   // Include the header file containing text variables
 
+M5Canvas canvas(&M5.Display);
+
 bool boutton_clicked = false;
 bool manualRefresh = false;
 
@@ -189,7 +191,7 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
           ctLengthPart += CurrentLine.length();
           CurrentLine += (indexIfSeparator == 1 ? "-" : "");
           indentLocale = prefixString.length() * fontSize / 2 * ((String(content).indexOf(prefixString) != -1) ? 2 : 1);
-          M5.Display.drawString(CurrentLine.c_str(), initX + indentLocale, currentY);
+          canvas.drawString(CurrentLine.c_str(), initX + indentLocale, currentY);
           //DrawString(CurrentLine.c_str(), initX + indentLocale, currentY);
           currentY += lineHeight;
         }
@@ -199,7 +201,7 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
         while (strTempLine.length() < (endX - startX) / (fontSize / 2)) {
           strTempLine += ' ';
         }
-        M5.Display.drawString(strTempLine.c_str(), initX + indentLocale, currentY);
+        canvas.drawString(strTempLine.c_str(), initX + indentLocale, currentY);
         indentLocale = prefixString.length() * fontSize / 2 * ((String(content).indexOf(prefixString) != -1) ? 2 : 1);
         currentX = 0;
         lineLength = currentX;
@@ -224,7 +226,7 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
           strTempLine += ' ';
         }
         // Display this line
-        M5.Display.drawString(strTempLine.c_str(), initX + indentLocale, currentY);
+        canvas.drawString(strTempLine.c_str(), initX + indentLocale, currentY);
         indentLocale = prefixString.length() * fontSize / 2 * ((String(content).indexOf(prefixString) != -1) ? 2 : 1);
         currentX = 0;
         lineLength = currentX;
@@ -280,10 +282,11 @@ void Update_Display(String APIText) {
   Serial.println();
   Serial.println();
   //Clear part
-  M5.Display.fillRect(0, EPFL_INN011_header_height, M5.Display.width(), M5.Display.height() - epd_bitmap_refresh_height - EPFL_INN011_header_height, WHITE);
+  //M5.Display.fillRect(0, EPFL_INN011_header_height, M5.Display.width(), M5.Display.height() - epd_bitmap_refresh_height - EPFL_INN011_header_height, WHITE);
+  canvas.fillScreen(WHITE);
   //M5.Display.display();
 
-  startY = 100 + 20;
+  startY = 20;
   bool firstLine = true && APIText.indexOf(prefixString) != -1;
 
   Serial.print("Inside update_display : ");
@@ -356,6 +359,7 @@ void Update_Display(String APIText) {
     Serial.println("Update_Display after refresh date");
   }
 
+  canvas.pushSprite(0, EPFL_INN011_header_height);
   M5.Display.display();
 }
 
@@ -456,17 +460,25 @@ void setup() {
   // Initialization settings, executed only once when the program starts
   M5.begin();
 
+  if (M5.Display.width() < M5.Display.height())
+  {
+    M5.Display.setRotation(M5.Display.getRotation() ^ 1);
+  }
+
+  canvas.setColorDepth(1); // mono color
+  //canvas.setTextColor(0);
+  //canvas.setBitmapColor(BLACK, WHITE);
+  //canvas.fillSprite(15);
+  //canvas.setTextColor(15);
+  canvas.createSprite(M5.Display.width(), M5.Display.height() - EPFL_INN011_header_height - epd_bitmap_refresh_height);
+
   endX = M5.Display.width();
   endY = M5.Display.height();
 
   M5.Display.init();
   M5.Display.setFont(&fonts::Font4);
   M5.Display.setTextSize(textFontSize);
-
-  if (M5.Display.width() < M5.Display.height())
-  {
-    M5.Display.setRotation(M5.Display.getRotation() ^ 1);
-  }
+  canvas.setTextSize(4);
 
   M5.Display.setEpdMode(epd_text); //epd_mode_t::epd_fastest
   M5.Display.startWrite();
@@ -484,6 +496,13 @@ void setup() {
   M5.Display.drawBitmap(M5.Display.width() - epd_bitmap_refresh_width, M5.Display.height() - epd_bitmap_refresh_height, epd_bitmap_refresh, epd_bitmap_refresh_width, epd_bitmap_refresh_height, WHITE, BLACK); //x, y, bitmap, width, height, bg, fg
 
   M5.Display.display(); // Update display
+
+  //M5.Display.setTextColor(BLACK);
+
+  canvas.fillScreen(WHITE);  // Or any other TFT_ color
+
+  // Draw something
+  canvas.setTextColor(BLACK);
 
   Serial.println("Before Wifi text");
   Update_Display(replaceAccentChar(Loading_Message));
