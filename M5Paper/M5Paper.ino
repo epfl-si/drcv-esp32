@@ -34,14 +34,14 @@
 #include "pic_scenario.h"   // Include the header file containing image data
 #include "../src/variables.h"   // Include the header file containing text variables
 
-M5Canvas canvas(&M5.Display);
+//M5Canvas canvas(&M5.Display);
 
 bool boutton_clicked = false;
 bool manualRefresh = false;
 
 bool dateForTestingDevelopment = true;
 String dateForTestingEnd = "2025-06-11"; //2025-06-12
-String dateForTestingStart = dateForTestingEnd + "T12:30:24";
+String dateForTestingStart = dateForTestingEnd + "T06:30:24";
 int dateIndents = 20;
 
 int counter = 0;
@@ -74,6 +74,7 @@ int beforeStartX = 0;
 int startX = 0; // Starting horizontal axis
 int startY = 0;  // Starting vertical axis
 int fontSize = M5.Display.fontHeight(); // Font size
+int displayFontSize = M5.Display.fontHeight();
 int batteryFontSize = 1;
 int roomFontSize = 2;
 int textFontSize = 2;
@@ -86,6 +87,12 @@ int y = 0;
 int refreshIconX = 0;
 int refreshIconY = 0;
 int beforeBattery = 0;
+
+
+int refreshX = 0;
+int refreshX2 = 260;
+int refreshY = 0;
+int refreshY2 = 0;
 
 
 
@@ -173,36 +180,48 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
     Serial.print(" = ");
     Serial.print(ctLen);
     Serial.print(" (");
-    Serial.print(ctLen * (fontSize / 2) + initX + indentLocale);
+    Serial.print(M5.Display.textWidth(ct) + initX + indentLocale);
     Serial.print(" > ");
     Serial.print(endX - currentX);
     Serial.println(")");
-    if (ctLen * (fontSize / 2) + initX + indentLocale > (endX - currentX)) {
-      if (ctLen * (fontSize / 2) > (endX - initX + indentLocale)) { //Check if word if larger than one line
+    Serial.println(M5.Display.textWidth("W"));
+    Serial.println(endX);
+    Serial.println(endY);
+    // ctLen * (fontSize / 2) -> M5.Display.textWidth(ct);
+    if (M5.Display.textWidth(ct) + initX + indentLocale > (endX - currentX)) {
+      if (M5.Display.textWidth(ct) > (endX - initX + indentLocale)) { //Check if word if larger than one line
         int ctLengthPart = 0;
-        while (ctLengthPart < ct.length()) {
+        while (ctLengthPart < M5.Display.textWidth(ct)) {
           //int pxAvailableForCurrentLine = (endX - currentX) - (ctLen * (fontSize/2) + initX);
           int pxAvailableForCurrentLine = (endX - currentX) - initX;
           //int pxUsedForCurrentLine = ;
-          int indexIfSeparator = (ct.substring(ctLengthPart, ct.length() - 1)).length() * (fontSize / 2) > pxAvailableForCurrentLine ? 1 : 0;
-          int indexMaxAcceptedForCurrentLine = (pxAvailableForCurrentLine) / (fontSize / 2) - indexIfSeparator ;
+          // (ct.substring(ctLengthPart, ct.length() - 1)).length() * (fontSize / 2) -> M5.Display.textWidth(ct)
+          int indexIfSeparator = M5.Display.textWidth(ct.substring(ctLengthPart, ct.length() - 1)) > pxAvailableForCurrentLine ? 1 : 0;
+          // (fontSize / 2)  -> M5.Display.textWidth("W")
+          int indexMaxAcceptedForCurrentLine = (pxAvailableForCurrentLine) / M5.Display.textWidth("W") - indexIfSeparator ;
           int indexForCutString = indexMaxAcceptedForCurrentLine < ct.length() - indexIfSeparator - ctLengthPart ? indexMaxAcceptedForCurrentLine : ct.length() - indexIfSeparator - ctLengthPart;
           String CurrentLine = ct.substring(ctLengthPart, ctLengthPart + indexForCutString);
-          ctLengthPart += CurrentLine.length();
+          ctLengthPart += M5.Display.textWidth(CurrentLine);
           CurrentLine += (indexIfSeparator == 1 ? "-" : "");
-          indentLocale = prefixString.length() * fontSize / 2 * ((String(content).indexOf(prefixString) != -1) ? 2 : 1);
-          canvas.drawString(CurrentLine.c_str(), initX + indentLocale, currentY);
+          // prefixString.length() * fontSize / 2 -> M5.Display.textWidth(prefixString)
+          indentLocale = M5.Display.textWidth(prefixString) * ((String(content).indexOf(prefixString) != -1) ? 2 : 1);
+          M5.Display.setCursor(initX + indentLocale, currentY);
+          M5.Display.printf(CurrentLine.c_str());
+          //ycanvas.drawString(CurrentLine.c_str(), initX + indentLocale, currentY);
           //DrawString(CurrentLine.c_str(), initX + indentLocale, currentY);
           currentY += lineHeight;
         }
         strTempLine = "";
       }
       else {
-        while (strTempLine.length() < (endX - startX) / (fontSize / 2)) {
+        while (strTempLine.length() < (endX - startX) / M5.Display.textWidth("i")) {
           strTempLine += ' ';
         }
-        canvas.drawString(strTempLine.c_str(), initX + indentLocale, currentY);
-        indentLocale = prefixString.length() * fontSize / 2 * ((String(content).indexOf(prefixString) != -1) ? 2 : 1);
+        M5.Display.setCursor(initX + indentLocale, currentY);
+        M5.Display.printf(strTempLine.c_str());
+        //canvas.drawString(strTempLine.c_str(), initX + indentLocale, currentY);
+        // prefixString.length() * fontSize / 2 -> M5.Display.textWidth(prefixString)
+        indentLocale = M5.Display.textWidth(prefixString) * ((String(content).indexOf(prefixString) != -1) ? 2 : 1);
         currentX = 0;
         lineLength = currentX;
         currentY += lineHeight;
@@ -222,12 +241,16 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
       }
 
       if (j == len - 1) {
-        while (strTempLine.length() < (endX - startX) / (fontSize / 2)) {
+        while (strTempLine.length() < (endX - startX) / M5.Display.textWidth("i")) {
           strTempLine += ' ';
         }
         // Display this line
-        canvas.drawString(strTempLine.c_str(), initX + indentLocale, currentY);
-        indentLocale = prefixString.length() * fontSize / 2 * ((String(content).indexOf(prefixString) != -1) ? 2 : 1);
+        
+        M5.Display.setCursor(initX + indentLocale, currentY);
+        M5.Display.printf(strTempLine.c_str());
+        //canvas.drawString(strTempLine.c_str(), initX + indentLocale, currentY);
+        // prefixString.length() * fontSize / 2 -> M5.Display.textWidth(prefixString)
+        indentLocale = M5.Display.textWidth(prefixString) * ((String(content).indexOf(prefixString) != -1) ? 2 : 1);
         currentX = 0;
         lineLength = currentX;
         currentY += lineHeight;
@@ -283,10 +306,11 @@ void Update_Display(String APIText) {
   Serial.println();
   //Clear part
   //M5.Display.fillRect(0, EPFL_INN011_header_height, M5.Display.width(), M5.Display.height() - epd_bitmap_refresh_height - EPFL_INN011_header_height, WHITE);
-  canvas.fillScreen(WHITE);
+  //canvas.fillScreen(WHITE);
   //M5.Display.display();
 
-  startY = 20;
+  //startY = 20;
+  startY = EPFL_INN011_header_height + 20;
   bool firstLine = true && APIText.indexOf(prefixString) != -1;
 
   Serial.print("Inside update_display : ");
@@ -300,10 +324,29 @@ void Update_Display(String APIText) {
       int maxElem = 2;
       String* APITextArray = Split(APIText, separator.c_str(), len);
       maxElem = len < maxElem ? len : maxElem; //Len for real data, max 2
-      maxElem = APIText.indexOf(resetString) != -1 ? 6 : maxElem; //Len for clear, max 6
-      if (len > 1) {
+      //maxElem = APIText.indexOf(resetString) != -1 ? 6 : maxElem; //Len for clear, max 6
+      if (APIText == resetString){
+        int currentResetY = startY;
+        for (int i = 0; i < 6; i++) {
+          String tempEmptyStr = "";
+          while (M5.Display.textWidth(tempEmptyStr) < endX) {
+            tempEmptyStr += ' ';
+          }
+          // Display this line
+          
+          M5.Display.setCursor(0, currentResetY);
+          M5.Display.printf(tempEmptyStr.c_str());
+          Serial.print("currentResetY Before: ");
+          Serial.println(currentResetY);
+          currentResetY += M5.Display.fontHeight();  
+          Serial.print("currentResetY After: ");
+          Serial.println(currentResetY);
+        }
+      }
+      else if (len > 1) {
         for (int i = 0; i < maxElem; i++) {
           Serial.println("a");
+          Serial.println(APITextArray[i].c_str());
           //startX = APIText.indexOf(prefixString) != -1 ? dateIndents : startX;
           Part_Text_Display(APITextArray[i].c_str(), startX, startY, fontSize, BLACK, endX, endY);
 
@@ -326,6 +369,7 @@ void Update_Display(String APIText) {
     else {
       Serial.println("d");
       //startX = APIText.indexOf(prefixString) != -1 ? dateIndents : startX;
+      Serial.println(APIText.c_str());
       Part_Text_Display(APIText.c_str(), startX, startY, fontSize, BLACK, endX, endY);
     }
   }
@@ -337,12 +381,7 @@ void Update_Display(String APIText) {
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("Update_Display before refresh date");
 
-    int x = 0;
-    int x2 = 260;
-    int y = M5.Display.height() - 70;
-    int y2 = M5.Display.height() - 20;
-
-    M5.Display.fillRect(x, y, x2 + 5, M5.Display.height(), WHITE);
+    M5.Display.fillRect(refreshX, refreshY, refreshX2 + 5, M5.Display.height(), WHITE);
     //M5.Display.display();
     
     refreshDateTime(before_refresh_date);
@@ -350,17 +389,30 @@ void Update_Display(String APIText) {
     String current_hour_refresh = current_date->hour + ":" + current_date->minute + ":" + current_date->second;
     M5.Display.setTextSize(roomFontSize);
 
-    M5.Display.drawString(current_date_refresh.c_str(), x, y);
+    
+    M5.Display.setCursor(refreshX, refreshY);
+    M5.Display.printf(current_date_refresh.c_str());
+    //M5.Display.drawString(current_date_refresh.c_str(), refreshX, refreshY);
     M5.Display.setTextSize(batteryFontSize);
-    M5.Display.drawString(("last refresh: " + current_hour_refresh).c_str(), x, y2);
+    M5.Display.setCursor(refreshX, refreshY2);
+    M5.Display.printf("last refresh: %s", current_hour_refresh);
+    //M5.Display.drawString(("last refresh: " + current_hour_refresh).c_str(), x, y2);
     M5.Display.setTextSize(textFontSize);
-    M5.Display.drawLine(x, y, x2, y, BLACK); // Horizontal line
-    M5.Display.drawLine(x2, y, x2, M5.Display.height(), BLACK); // Vertical line
+    M5.Display.drawLine(refreshX, refreshY, refreshX2, refreshY, BLACK); // Horizontal line (For last refresh section, bottom left)
+    M5.Display.drawLine(refreshX2, refreshY, refreshX2, M5.Display.height(), BLACK); // Vertical line (For last refresh section, bottom left)
     Serial.println("Update_Display after refresh date");
   }
 
-  canvas.pushSprite(0, EPFL_INN011_header_height);
-  M5.Display.display();
+  //M5.Display.setEpdMode(epd_mode_t::epd_fastest);
+  //canvas.fillRect(0, EPFL_INN011_header_height, M5.Display.width(), M5.Display.height() - EPFL_INN011_header_height - epd_bitmap_refresh_height, WHITE);
+  
+  //canvas.pushSprite(0, EPFL_INN011_header_height);
+
+  
+  //M5.update();
+
+  
+  //M5.Display.display();                             // Trigger full refresh
 }
 
 
@@ -459,32 +511,36 @@ void setup() {
 
   // Initialization settings, executed only once when the program starts
   M5.begin();
+  M5.Display.setRotation(M5.Display.getRotation() ^ 1);
+  M5.Display.setFont(&fonts::Font4);
+  M5.Display.setEpdMode(epd_text);  // epd_quality, epd_text, epd_fast, epd_fastest
+  M5.Display.clear();
 
-  if (M5.Display.width() < M5.Display.height())
-  {
-    M5.Display.setRotation(M5.Display.getRotation() ^ 1);
-  }
+  refreshY = M5.Display.height() - 70;
+  refreshY2 = M5.Display.height() - 20;
 
-  canvas.setColorDepth(1); // mono color
+  //canvas.setColorDepth(1); // mono color
+  //M5.Display.setFont(&fonts::FreeMonoBold18pt7b);
   //canvas.setTextColor(0);
   //canvas.setBitmapColor(BLACK, WHITE);
   //canvas.fillSprite(15);
   //canvas.setTextColor(15);
-  canvas.createSprite(M5.Display.width(), M5.Display.height() - EPFL_INN011_header_height - epd_bitmap_refresh_height);
+  
+  //canvas.createSprite(M5.Display.width(), M5.Display.height() - EPFL_INN011_header_height - epd_bitmap_refresh_height);
 
   endX = M5.Display.width();
   endY = M5.Display.height();
 
   M5.Display.init();
-  M5.Display.setFont(&fonts::Font4);
+  //M5.Display.setFont(&fonts::Font4);
   M5.Display.setTextSize(textFontSize);
-  canvas.setTextSize(4);
+  //canvas.setTextSize(4);
 
-  M5.Display.setEpdMode(epd_text); //epd_mode_t::epd_fastest
-  M5.Display.startWrite();
+  //M5.Display.setEpdMode(epd_text); //epd_mode_t::epd_fastest
+  //M5.Display.startWrite();
 
-  M5.Display.clear();
-  M5.Display.clearDisplay();
+  //M5.Display.clear();
+  //M5.Display.clearDisplay();
 
   refreshIconX = M5.Display.width() - epd_bitmap_refresh_width;
   refreshIconY = M5.Display.height() - epd_bitmap_refresh_height;
@@ -492,24 +548,42 @@ void setup() {
   //Write header
   M5.Display.drawBitmap(0, 0, EPFL_INN011_header, EPFL_INN011_header_width, EPFL_INN011_header_height, WHITE, BLACK); //x, y, bitmap, width, height, bg, fg
 
-  //Write footer
+  //Write footer refresh icon
   M5.Display.drawBitmap(M5.Display.width() - epd_bitmap_refresh_width, M5.Display.height() - epd_bitmap_refresh_height, epd_bitmap_refresh, epd_bitmap_refresh_width, epd_bitmap_refresh_height, WHITE, BLACK); //x, y, bitmap, width, height, bg, fg
 
-  M5.Display.display(); // Update display
+  Serial.println(refreshY);
+  Serial.println(refreshY);
+  Serial.println(refreshY);
+  Serial.println(refreshY);
+  Serial.println(refreshY);
+  Serial.println(refreshY);
+  Serial.println(refreshY);
+  //M5.Display.drawLine(refreshX, refreshY, refreshX2, refreshY, BLACK); // Horizontal line (For last refresh section, bottom left)
+  //M5.Display.drawLine(refreshX2, refreshY, refreshX2, M5.Display.height(), BLACK); // Vertical line (For last refresh section, bottom left)
+  //M5.Display.display(); // Update display
+
+  M5.update();
+
+  M5.Display.setEpdMode(epd_text);
 
   //M5.Display.setTextColor(BLACK);
 
-  canvas.fillScreen(WHITE);  // Or any other TFT_ color
+  //canvas.fillScreen(WHITE);  // Or any other TFT_ color
 
   // Draw something
-  canvas.setTextColor(BLACK);
+  //canvas.setTextColor(BLACK);
+
+  //Serial.println(canvas.fontHeight());
+
+  //fontSize = canvas.fontHeight();
+  fontSize = M5.Display.fontHeight();
+
+  Serial.println();
+  Serial.printf("%3d (%3d)", M5.Display.fontHeight(), fontSize);
 
   Serial.println("Before Wifi text");
   Update_Display(replaceAccentChar(Loading_Message));
   Serial.println("After Wifi text");
-
-
-
 
 
 
@@ -535,6 +609,12 @@ void setup() {
   Serial.println("IP address set: ");
   Serial.println(WiFi.localIP());  //print LAN IP
 
+//  Serial.println("----------------------> RESET STRING <-----------------------");
+//  Serial.println(resetString);
+//  Update_Display(resetString);
+
+  //delay(10000);
+
   HTTPClient https;
   https.begin(API_SERVICE_ENDPOINT);
   https.addHeader("Content-Type", "text/xml");
@@ -551,11 +631,13 @@ void setup() {
       String body = https.getString();
       int itemsLength = 0;
       String* items = XMLParser(body, "<t:Contact>", "</t:Contact>", itemsLength);
-      M5.Display.setTextColor(WHITE);
+      M5.Display.setTextColor(WHITE, BLACK);
       M5.Display.setTextSize(roomFontSize);
-      M5.Display.drawString(replaceAccentChar(XMLGetter(items[0], "<t:DisplayName>", "</t:DisplayName>")).c_str(), 200, (EPFL_INN011_header_height / 2) - fontSize * roomFontSize);
+      M5.Display.setCursor(200, (EPFL_INN011_header_height / 2) - displayFontSize * roomFontSize);
+      M5.Display.printf(replaceAccentChar(XMLGetter(items[0], "<t:DisplayName>", "</t:DisplayName>")).c_str());
+      //M5.Display.drawString(replaceAccentChar(XMLGetter(items[0], "<t:DisplayName>", "</t:DisplayName>")).c_str(), 200, (EPFL_INN011_header_height / 2) - displayFontSize * roomFontSize);
       M5.Display.setTextSize(textFontSize);
-      M5.Display.setTextColor(BLACK);
+      M5.Display.setTextColor(BLACK, WHITE);
     }
     else {
       delay(1000);
@@ -586,29 +668,35 @@ void setup() {
 
 
 void loop() {
-  Serial.print("~");
+  //Serial.print("~");
   unsigned long currentTime = millis();
-  delay(100);
-
-  M5.update();
+  //delay(100);
 
 
   int32_t batteryLevel = M5.Power.getBatteryLevel();
   int refreshEveryPercent = 5; //all 5%
-  if (batteryLevel / refreshEveryPercent != beforeBattery / refreshEveryPercent && batteryLevel / refreshEveryPercent > beforeBattery / refreshEveryPercent){ //actualise one time at every {refreshEveryPercent}%
+//  if (batteryLevel / refreshEveryPercent != beforeBattery / refreshEveryPercent && batteryLevel / refreshEveryPercent > beforeBattery / refreshEveryPercent){ //actualise one time at every {refreshEveryPercent}%
+  int batteryPercentageRefreshMinute = 10;
+  int lastBatteryUpdateTime = 0;
+  if (currentTime - lastBatteryUpdateTime >= 60000 * batteryPercentageRefreshMinute || firstLaunch){
+    M5.update();
+    lastBatteryUpdateTime = 0;
     String text = String("Batterie : ") + String(batteryLevel) + String("%");
     beforeBattery = batteryLevel;
     int xBattery = 16;
-    int yBattery = (EPFL_INN011_header_height / 2) - fontSize * batteryFontSize;
+    int yBattery = (EPFL_INN011_header_height / 2) - displayFontSize * batteryFontSize;
     M5.Display.setCursor(xBattery, yBattery);
-    M5.Display.fillRect(xBattery, yBattery, xBattery + 150, yBattery + 18, BLACK);
+    //M5.Display.fillRect(xBattery, yBattery, xBattery + 150, yBattery + 18, BLACK);
     //M5.Display.display();
-    M5.Display.setTextColor(WHITE);
+    
+    M5.Display.setTextColor(WHITE, BLACK);
     M5.Display.setTextSize(batteryFontSize);
     M5.Display.print(text);
     M5.Display.setTextSize(textFontSize);
-    M5.Display.display();
-    M5.Display.setTextColor(BLACK);
+    
+    //M5.Display.display();
+    
+    M5.Display.setTextColor(BLACK, WHITE);
   }
 
 
@@ -638,10 +726,27 @@ void loop() {
 
   if ((current_date->hour.toInt() >= MIN_HOUR_REFRESH && current_date->hour.toInt() <= MAX_HOUR_REFRESH && currentTime - lastUpdateTime >= 60000 * autoRefreshMinutes) || manualRefresh || firstLaunch) {
     lastUpdateTime = currentTime;
-    Update_Display(resetString); //Refresh partial replace (replacing all writing area with space)
+    //Update_Display(resetString); //Refresh partial replace (replacing all writing area with space)
 
     firstLaunch = false;
 
+    //Update_Display(resetString);
+
+    
+//    delay(1000);
+//    Serial.println("resetString");
+//    Serial.println("resetString");
+//    Serial.println(resetString);
+//    Serial.println("resetString");
+//    Update_Display(resetString);
+//    Serial.println(" ------------->                    RESEEEEEEEEEEEEEEEEEEEEEEET                    <-------------");
+//    Serial.println(" ------------->                    RESEEEEEEEEEEEEEEEEEEEEEEET                    <-------------");
+//    Serial.println(" ------------->                    RESEEEEEEEEEEEEEEEEEEEEEEET                    <-------------");
+//    Serial.println(" ------------->                    RESEEEEEEEEEEEEEEEEEEEEEEET                    <-------------");
+//    M5.update();
+//    delay(1000);
+
+    Update_Display(resetString);
     Update_Display(replaceAccentChar(APIRequestText));
 
 
@@ -673,6 +778,9 @@ void loop() {
 
     refreshDateTime(current_date);
     Serial.println("After hour request");
+
+    Update_Display(resetString);
+    //M5.update();
 
 
     String dateString = "" + current_date->year + "-" + current_date->month + "-" + current_date->day;
@@ -738,7 +846,6 @@ void loop() {
     }
 
 
-    Update_Display(resetString); //Refresh partial replace (replacing all writing area with space)
     Update_Display(APIText);
 
     refreshDateTime(before_refresh_date);
