@@ -828,6 +828,7 @@ void loop() {
   //  Serial.println(current_date->hour.toInt());
 
   if ((current_date->hour.toInt() >= MIN_HOUR_REFRESH && current_date->hour.toInt() <= MAX_HOUR_REFRESH && currentTime - lastUpdateTime >= 60000 * autoRefreshMinutes) || manualRefresh || firstLaunch || manualChangeRoom) {
+    startX = 0;
     xmlRequest = xmlRequestOrigin;
     if ((nbRefresh % nbRefreshBeforeFullRefresh == 0 && nbRefresh != 0) || manualChangeRoom){
       Serial.println("Mega Clear");
