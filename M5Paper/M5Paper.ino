@@ -81,6 +81,7 @@ int textFontSize = 2;
 int endX = 400;    // End horizontal axis
 int endY = 300;    // End vertical axis
 
+String roomDisplayName;
 
 int x = 0;
 int y = 0;
@@ -94,9 +95,16 @@ int refreshX2 = 260;
 int refreshY = 0;
 int refreshY2 = 0;
 
+int nbRefresh = 0;
+int nbRefreshBeforeFullRefresh = 3;
+
+int lastBatteryUpdateTime = 0;
+
+int selectedRoomId = 0;
+bool manualChangeRoom = false;
 
 
-String xmlRequest = R"rawliteral(<?xml version="1.0" encoding="utf-8"?>
+String xmlRequestOrigin = R"rawliteral(<?xml version="1.0" encoding="utf-8"?>
   <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"
       xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types"
@@ -127,7 +135,10 @@ String xmlRequest = R"rawliteral(<?xml version="1.0" encoding="utf-8"?>
   </soap:Envelope>)rawliteral";
 
 
-String xmlRequestGetName = R"rawliteral(<?xml version="1.0" encoding="utf-8"?>
+String xmlRequest = xmlRequestOrigin;
+
+
+String xmlRequestGetNameOrigin = R"rawliteral(<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
   xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
   <soap:Header>
@@ -142,6 +153,7 @@ String xmlRequestGetName = R"rawliteral(<?xml version="1.0" encoding="utf-8"?>
   </soap:Body>
 </soap:Envelope>)rawliteral";
 
+String xmlRequestGetName = xmlRequestGetNameOrigin;
 
 /*
   ---------Function description: Display text content locally------------
@@ -318,63 +330,57 @@ void Update_Display(String APIText) {
   Serial.println(startX);
   Serial.println(startY);
 
-  if (APIText != "No more events today") {
-    if (APIText.indexOf(separator) != -1) {
-      int len = 0;
-      int maxElem = 2;
-      String* APITextArray = Split(APIText, separator.c_str(), len);
-      maxElem = len < maxElem ? len : maxElem; //Len for real data, max 2
-      //maxElem = APIText.indexOf(resetString) != -1 ? 6 : maxElem; //Len for clear, max 6
-      if (APIText == resetString){
-        int currentResetY = startY;
-        for (int i = 0; i < 6; i++) {
-          String tempEmptyStr = "";
-          while (M5.Display.textWidth(tempEmptyStr) < endX) {
-            tempEmptyStr += ' ';
-          }
-          // Display this line
-          
-          M5.Display.setCursor(0, currentResetY);
-          M5.Display.printf(tempEmptyStr.c_str());
-          Serial.print("currentResetY Before: ");
-          Serial.println(currentResetY);
-          currentResetY += M5.Display.fontHeight();  
-          Serial.print("currentResetY After: ");
-          Serial.println(currentResetY);
+  if (APIText.indexOf(separator) != -1) {
+    int len = 0;
+    int maxElem = 2;
+    String* APITextArray = Split(APIText, separator.c_str(), len);
+    maxElem = len < maxElem ? len : maxElem; //Len for real data, max 2
+    //maxElem = APIText.indexOf(resetString) != -1 ? 6 : maxElem; //Len for clear, max 6
+    if (APIText == resetString){
+      int currentResetY = startY;
+      for (int i = 0; i < 6; i++) {
+        String tempEmptyStr = "";
+        while (M5.Display.textWidth(tempEmptyStr) < endX) {
+          tempEmptyStr += ' ';
         }
-      }
-      else if (len > 1) {
-        for (int i = 0; i < maxElem; i++) {
-          Serial.println("a");
-          Serial.println(APITextArray[i].c_str());
-          //startX = APIText.indexOf(prefixString) != -1 ? dateIndents : startX;
-          Part_Text_Display(APITextArray[i].c_str(), startX, startY, fontSize, BLACK, endX, endY);
-
-          startX = (firstLine ? prefixString.length() * fontSize / 2 : 0); //FAIRE LIGNE QUE prefixString.length() * fontSize / 2 SI PAS 1ère ligne ET QUE CELEL CI CONTENANT prefixString
-          //firstLine = (firstLine ? !firstLine : firstLine);
-
-          startY = APIText.indexOf(prefixString) != -1 ? (startY + fontSize / 2) : startY;
-        }
-      }
-      else if (len == 1) {
-        Serial.println("b");
-        startX = dateIndents;
-        Part_Text_Display(APIText.c_str(), startX, startY, fontSize, BLACK, endX, endY);
-      }
-      else {
-        Serial.println("c");
-        Part_Text_Display("error", startX, startY, fontSize, BLACK, endX, endY);
+        // Display this line
+        
+        M5.Display.setCursor(0, currentResetY);
+        M5.Display.printf(tempEmptyStr.c_str());
+        Serial.print("currentResetY Before: ");
+        Serial.println(currentResetY);
+        currentResetY += M5.Display.fontHeight();  
+        Serial.print("currentResetY After: ");
+        Serial.println(currentResetY);
       }
     }
-    else {
-      Serial.println("d");
-      //startX = APIText.indexOf(prefixString) != -1 ? dateIndents : startX;
-      Serial.println(APIText.c_str());
+    else if (len > 1) {
+      for (int i = 0; i < maxElem; i++) {
+        Serial.println("a");
+        Serial.println(APITextArray[i].c_str());
+        //startX = APIText.indexOf(prefixString) != -1 ? dateIndents : startX;
+        Part_Text_Display(APITextArray[i].c_str(), startX, startY, fontSize, BLACK, endX, endY);
+
+        startX = (firstLine ? prefixString.length() * fontSize / 2 : 0); //FAIRE LIGNE QUE prefixString.length() * fontSize / 2 SI PAS 1ère ligne ET QUE CELEL CI CONTENANT prefixString
+        //firstLine = (firstLine ? !firstLine : firstLine);
+
+        startY = APIText.indexOf(prefixString) != -1 ? (startY + fontSize / 2) : startY;
+      }
+    }
+    else if (len == 1) {
+      Serial.println("b");
+      startX = dateIndents;
       Part_Text_Display(APIText.c_str(), startX, startY, fontSize, BLACK, endX, endY);
+    }
+    else {
+      Serial.println("c");
+      Part_Text_Display("error", startX, startY, fontSize, BLACK, endX, endY);
     }
   }
   else {
-    Serial.println("e");
+    Serial.println("d");
+    //startX = APIText.indexOf(prefixString) != -1 ? dateIndents : startX;
+    Serial.println(APIText.c_str());
     Part_Text_Display(APIText.c_str(), startX, startY, fontSize, BLACK, endX, endY);
   }
 
@@ -495,7 +501,31 @@ String replaceAccentChar(String text) {
 
 
 
-
+String GetRoomName(String room){
+    HTTPClient https;
+    https.begin(API_SERVICE_ENDPOINT);
+    https.addHeader("Content-Type", "text/xml");
+    https.setAuthorization(API_USERNAME, API_PASSWORD);
+    xmlRequestGetName = xmlRequestGetNameOrigin;
+    xmlRequestGetName.replace("{email}", room);
+    int httpResponseCode  = 0;
+    while (httpResponseCode != 200) {
+      Serial.println("Get room name");
+      httpResponseCode = https.POST(xmlRequestGetName);
+      Serial.print("code: ");
+      Serial.println(httpResponseCode);
+  
+      if (httpResponseCode == 200) {
+        String body = https.getString();
+        int itemsLength = 0;
+        String* items = XMLParser(body, "<t:Contact>", "</t:Contact>", itemsLength);
+        return replaceAccentChar(XMLGetter(items[0], "<t:DisplayName>", "</t:DisplayName>"));
+      }
+      else {
+        delay(1000);
+      }
+    }
+}
 
 
 
@@ -506,8 +536,8 @@ String replaceAccentChar(String text) {
 void setup() {
   Serial.begin(115200);
   delay(10);
+  xmlRequest = xmlRequestOrigin;
   xmlRequest.replace("{email}", API_EMAIL_TARGET); // Replace the {email} with the real email target in secrets.h
-
 
   // Initialization settings, executed only once when the program starts
   M5.begin();
@@ -633,8 +663,10 @@ void setup() {
       String* items = XMLParser(body, "<t:Contact>", "</t:Contact>", itemsLength);
       M5.Display.setTextColor(WHITE, BLACK);
       M5.Display.setTextSize(roomFontSize);
-      M5.Display.setCursor(200, (EPFL_INN011_header_height / 2) - displayFontSize * roomFontSize);
-      M5.Display.printf(replaceAccentChar(XMLGetter(items[0], "<t:DisplayName>", "</t:DisplayName>")).c_str());
+      roomDisplayName = replaceAccentChar(XMLGetter(items[0], "<t:DisplayName>", "</t:DisplayName>"));
+      //M5.Display.setCursor(200, (EPFL_INN011_header_height / 2) - displayFontSize * roomFontSize);
+      M5.Display.setCursor((EPFL_INN011_header_width / 2) - (M5.Display.textWidth(roomDisplayName)  / 2), 5);
+      M5.Display.printf(roomDisplayName.c_str());
       //M5.Display.drawString(replaceAccentChar(XMLGetter(items[0], "<t:DisplayName>", "</t:DisplayName>")).c_str(), 200, (EPFL_INN011_header_height / 2) - displayFontSize * roomFontSize);
       M5.Display.setTextSize(textFontSize);
       M5.Display.setTextColor(BLACK, WHITE);
@@ -672,16 +704,31 @@ void loop() {
   unsigned long currentTime = millis();
   //delay(100);
 
-
+  M5.update();
   int32_t batteryLevel = M5.Power.getBatteryLevel();
   int refreshEveryPercent = 5; //all 5%
 //  if (batteryLevel / refreshEveryPercent != beforeBattery / refreshEveryPercent && batteryLevel / refreshEveryPercent > beforeBattery / refreshEveryPercent){ //actualise one time at every {refreshEveryPercent}%
   int batteryPercentageRefreshMinute = 10;
-  int lastBatteryUpdateTime = 0;
-  if (currentTime - lastBatteryUpdateTime >= 60000 * batteryPercentageRefreshMinute || firstLaunch){
-    M5.update();
-    lastBatteryUpdateTime = 0;
-    String text = String("Batterie : ") + String(batteryLevel) + String("%");
+  //if (currentTime - lastBatteryUpdateTime >= 60000 * batteryPercentageRefreshMinute || firstLaunch){
+  if ((beforeBattery != batteryLevel && currentTime - lastBatteryUpdateTime >= 5000) || firstLaunch){
+    Serial.println();
+    Serial.println(batteryLevel);
+    Serial.println(beforeBattery != batteryLevel);
+    Serial.println(currentTime - lastBatteryUpdateTime >= 5000);
+    Serial.println(currentTime);
+    Serial.println(lastBatteryUpdateTime);
+    Serial.println(currentTime - lastBatteryUpdateTime);
+    Serial.println(beforeBattery != batteryLevel && currentTime - lastBatteryUpdateTime >= 5000);
+    Serial.println();
+    //M5.update();
+    lastBatteryUpdateTime = currentTime;
+    String empty = "";
+    if (batteryLevel < 100){
+      for (int i = 0; i < 3 - String(batteryLevel).length(); i++){
+        empty += "  ";
+      }
+    }
+    String text = String("Batterie : ") + String(batteryLevel) + String("%") + empty;
     beforeBattery = batteryLevel;
     int xBattery = 16;
     int yBattery = (EPFL_INN011_header_height / 2) - displayFontSize * batteryFontSize;
@@ -719,12 +766,92 @@ void loop() {
   }
 
 
+//    for (int i = 0; i < API_EMAIL_TARGET_ARRAY_LENGTH; i++){
+//      Serial.println(API_EMAIL_TARGET_ARRAY[i]);
+//    }
+  if (M5.BtnA.wasPressed()) {
+    Serial.println("BtnA was pressed");
+    selectedRoomId = selectedRoomId - 1 >= 0 ? selectedRoomId - 1 : API_EMAIL_TARGET_ARRAY_LENGTH - 1;
+        
+    String selectedEmailTarget = String(API_EMAIL_TARGET_ARRAY[selectedRoomId]);
+    selectedEmailTarget.replace(String(API_EMAIL_TARGET_SUFFIX), "");
+    selectedEmailTarget.toUpperCase();
+    Serial.println(selectedEmailTarget);
+    
+    M5.Display.setTextSize(batteryFontSize);
+    M5.Display.setTextColor(WHITE, BLACK);
+    String stringForWidthEstimation = "<- " + selectedEmailTarget + " ->";
+    M5.Display.setCursor((EPFL_INN011_header_width / 2) - (M5.Display.textWidth(stringForWidthEstimation)  / 2), 70);
+    M5.Display.printf("<- %s ->", selectedEmailTarget);
+    M5.Display.setTextColor(BLACK, WHITE);
+    M5.Display.setTextSize(textFontSize);
+  }
+  if (M5.BtnB.wasPressed()) {
+    manualChangeRoom = true;
+    Serial.println("BtnB was pressed");
+    String selectedEmailTarget = String(API_EMAIL_TARGET_ARRAY[selectedRoomId]);
+    selectedEmailTarget.replace(String(API_EMAIL_TARGET_SUFFIX), "");
+    selectedEmailTarget.toUpperCase();
+    Serial.println(selectedEmailTarget);
+    
+    M5.Display.setTextSize(batteryFontSize);
+    M5.Display.setTextColor(WHITE, BLACK);
+    String stringForWidthEstimation = "-> " + selectedEmailTarget + " <-";
+    M5.Display.setCursor((EPFL_INN011_header_width / 2) - (M5.Display.textWidth(stringForWidthEstimation)  / 2), 70);
+    M5.Display.printf("-> %s <-", selectedEmailTarget);
+    M5.Display.setTextColor(BLACK, WHITE);
+    M5.Display.setTextSize(textFontSize);
+
+    manualChangeRoom = true;
+    nbRefresh = 0;
+  }
+  if (M5.BtnC.wasPressed()) {
+    Serial.println("BtnC was pressed");
+    selectedRoomId = selectedRoomId + 1 < API_EMAIL_TARGET_ARRAY_LENGTH ? selectedRoomId + 1 : 0;
+    
+    String selectedEmailTarget = String(API_EMAIL_TARGET_ARRAY[selectedRoomId]);
+    selectedEmailTarget.replace(String(API_EMAIL_TARGET_SUFFIX), "");
+    selectedEmailTarget.toUpperCase();
+    Serial.println(selectedEmailTarget);
+    
+    M5.Display.setTextSize(batteryFontSize);
+    M5.Display.setTextColor(WHITE, BLACK);
+    String stringForWidthEstimation = "<- " + selectedEmailTarget + " ->";
+    M5.Display.setCursor((EPFL_INN011_header_width / 2) - (M5.Display.textWidth(stringForWidthEstimation)  / 2), 70);
+    M5.Display.printf("<- %s ->", selectedEmailTarget);
+    M5.Display.setTextColor(BLACK, WHITE);
+    M5.Display.setTextSize(textFontSize);
+  }
 
 
   //  Serial.print("WWW: ");
   //  Serial.println(current_date->hour.toInt());
 
-  if ((current_date->hour.toInt() >= MIN_HOUR_REFRESH && current_date->hour.toInt() <= MAX_HOUR_REFRESH && currentTime - lastUpdateTime >= 60000 * autoRefreshMinutes) || manualRefresh || firstLaunch) {
+  if ((current_date->hour.toInt() >= MIN_HOUR_REFRESH && current_date->hour.toInt() <= MAX_HOUR_REFRESH && currentTime - lastUpdateTime >= 60000 * autoRefreshMinutes) || manualRefresh || firstLaunch || manualChangeRoom) {
+    xmlRequest = xmlRequestOrigin;
+    if ((nbRefresh % nbRefreshBeforeFullRefresh == 0 && nbRefresh != 0) || manualChangeRoom){
+      Serial.println("Mega Clear");
+      //Clear
+      M5.Display.clear();
+    
+      //Write header
+      M5.Display.drawBitmap(0, 0, EPFL_INN011_header, EPFL_INN011_header_width, EPFL_INN011_header_height, WHITE, BLACK); //x, y, bitmap, width, height, bg, fg
+      
+      //Write room name
+      if (!manualChangeRoom){
+        M5.Display.setTextColor(WHITE, BLACK);
+        M5.Display.setTextSize(roomFontSize);
+        M5.Display.setCursor((EPFL_INN011_header_width / 2) - (M5.Display.textWidth(roomDisplayName)  / 2), 5);
+        M5.Display.printf(roomDisplayName.c_str());
+        M5.Display.setTextSize(textFontSize);
+        M5.Display.setTextColor(BLACK, WHITE); 
+      }
+    
+      //Write footer refresh icon
+      M5.Display.drawBitmap(M5.Display.width() - epd_bitmap_refresh_width, M5.Display.height() - epd_bitmap_refresh_height, epd_bitmap_refresh, epd_bitmap_refresh_width, epd_bitmap_refresh_height, WHITE, BLACK); //x, y, bitmap, width, height, bg, fg
+    }
+
+    
     lastUpdateTime = currentTime;
     //Update_Display(resetString); //Refresh partial replace (replacing all writing area with space)
 
@@ -773,6 +900,24 @@ void loop() {
         ESP.restart();
       }
     }
+
+    if (manualChangeRoom){
+      manualChangeRoom = false;
+      
+      M5.Display.setTextColor(WHITE, BLACK);
+      M5.Display.setTextSize(roomFontSize);
+      
+      roomDisplayName = GetRoomName(API_EMAIL_TARGET_ARRAY[selectedRoomId]);
+      
+      M5.Display.setCursor((EPFL_INN011_header_width / 2) - (M5.Display.textWidth(roomDisplayName)  / 2), 5);
+      M5.Display.printf(roomDisplayName.c_str());
+      
+      M5.Display.setTextSize(textFontSize);
+      M5.Display.setTextColor(BLACK, WHITE);
+    }
+
+
+    
     Serial.println("Connecting to NTP server: ");
 
 
@@ -789,6 +934,7 @@ void loop() {
 
     xmlRequest.replace("{start}", dateForTestingDevelopment ? dateForTestingStart : dateTimeString); // Replace the {start} with the current datetime
     xmlRequest.replace("{end}", dateForTestingDevelopment ? dateForTestingEnd : dateString); // Replace the {end} with the current date
+    xmlRequest.replace("{email}", API_EMAIL_TARGET_ARRAY[selectedRoomId]); // Replace the {end} with the current date
 
     Serial.print("Connecting to website: ");
     Serial.println(API_SERVICE_ENDPOINT);
@@ -800,7 +946,7 @@ void loop() {
     https.setAuthorization(API_USERNAME, API_PASSWORD);
     int httpResponseCode = https.POST(xmlRequest);
     Serial.println("After API request");
-
+    Serial.println(xmlRequest);
     if (httpResponseCode == 200) {
       Serial.println("API request Success");
       String body = https.getString();
@@ -850,5 +996,10 @@ void loop() {
 
     refreshDateTime(before_refresh_date);
     manualRefresh = false;
+    Serial.printf("nbRefresh (%s) %% nbRefreshBeforeFullRefresh (%s) == 0 (%s)", String(nbRefresh), String(nbRefreshBeforeFullRefresh), String(nbRefresh % nbRefreshBeforeFullRefresh == 0));
+    Serial.println();
+    Serial.printf("nbRefresh (%s) %% nbRefreshBeforeFullRefresh (%s) = (%s)", String(nbRefresh), String(nbRefreshBeforeFullRefresh), String(nbRefresh % nbRefreshBeforeFullRefresh));
+    nbRefresh++;
+    lastBatteryUpdateTime = currentTime;
   }
 }
