@@ -39,8 +39,8 @@
 bool boutton_clicked = false;
 bool manualRefresh = false;
 
-bool dateForTestingDevelopment = true;
-String dateForTestingEnd = "2025-06-11"; //2025-06-12
+bool dateForTestingDevelopment = false;
+String dateForTestingEnd = "2024-12-17"; //2025-06-12 or 2025-06-11
 String dateForTestingStart = dateForTestingEnd + "T06:30:24";
 int dateIndents = 20;
 
@@ -197,8 +197,8 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
     Serial.print(endX - currentX);
     Serial.println(")");
     Serial.println(M5.Display.textWidth("W"));
-    Serial.println(endX);
-    Serial.println(endY);
+    Serial.println(initX);
+    Serial.println(indentLocale);
     // ctLen * (fontSize / 2) -> M5.Display.textWidth(ct);
     if (M5.Display.textWidth(ct) + initX + indentLocale > (endX - currentX)) {
       if (M5.Display.textWidth(ct) > (endX - initX + indentLocale)) { //Check if word if larger than one line
@@ -226,7 +226,7 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
         strTempLine = "";
       }
       else {
-        while (strTempLine.length() < (endX - startX) / M5.Display.textWidth("i")) {
+        while (strTempLine.length() < (endX - startX) / M5.Display.textWidth("v")) {
           strTempLine += ' ';
         }
         M5.Display.setCursor(initX + indentLocale, currentY);
@@ -245,7 +245,7 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
       strTempLine += ct;
       strTempLine += ' ';
 
-      currentX = strTempLine.length() * (fontSize / 2);
+      currentX = M5.Display.textWidth(strTempLine);
 
       // If the current Y coordinate plus font size exceeds the area height, stop displaying
       if (currentY + lineHeight > endY) {
@@ -253,7 +253,7 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
       }
 
       if (j == len - 1) {
-        while (strTempLine.length() < (endX - startX) / M5.Display.textWidth("i")) {
+        while (strTempLine.length() < (endX - startX) / M5.Display.textWidth("v")) {
           strTempLine += ' ';
         }
         // Display this line
@@ -361,7 +361,7 @@ void Update_Display(String APIText) {
         //startX = APIText.indexOf(prefixString) != -1 ? dateIndents : startX;
         Part_Text_Display(APITextArray[i].c_str(), startX, startY, fontSize, BLACK, endX, endY);
 
-        startX = (firstLine ? prefixString.length() * fontSize / 2 : 0); //FAIRE LIGNE QUE prefixString.length() * fontSize / 2 SI PAS 1ère ligne ET QUE CELEL CI CONTENANT prefixString
+        startX = (firstLine ? M5.Display.textWidth(prefixString) : 0); //FAIRE LIGNE QUE prefixString.length() * fontSize / 2 SI PAS 1ère ligne ET QUE CELEL CI CONTENANT prefixString
         //firstLine = (firstLine ? !firstLine : firstLine);
 
         startY = APIText.indexOf(prefixString) != -1 ? (startY + fontSize / 2) : startY;
@@ -387,7 +387,7 @@ void Update_Display(String APIText) {
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("Update_Display before refresh date");
 
-    M5.Display.fillRect(refreshX, refreshY, refreshX2 + 5, M5.Display.height(), WHITE);
+    //M5.Display.fillRect(refreshX, refreshY, refreshX2 + 5, M5.Display.height(), WHITE);
     //M5.Display.display();
     
     refreshDateTime(before_refresh_date);
@@ -395,17 +395,18 @@ void Update_Display(String APIText) {
     String current_hour_refresh = current_date->hour + ":" + current_date->minute + ":" + current_date->second;
     M5.Display.setTextSize(roomFontSize);
 
-    
-    M5.Display.setCursor(refreshX, refreshY);
-    M5.Display.printf(current_date_refresh.c_str());
     //M5.Display.drawString(current_date_refresh.c_str(), refreshX, refreshY);
     M5.Display.setTextSize(batteryFontSize);
-    M5.Display.setCursor(refreshX, refreshY2);
-    M5.Display.printf("last refresh: %s", current_hour_refresh);
+    M5.Display.setCursor(refreshX + M5.Display.textWidth("last refresh: "), refreshY2);
+    String empty = "";
+    while (M5.Display.textWidth(empty) < M5.Display.textWidth(current_hour_refresh)){
+      empty += " ";
+    }
+    M5.Display.print(empty);
+    M5.Display.setCursor(refreshX + M5.Display.textWidth("last refresh: "), refreshY2);
+    M5.Display.print(current_hour_refresh);
     //M5.Display.drawString(("last refresh: " + current_hour_refresh).c_str(), x, y2);
     M5.Display.setTextSize(textFontSize);
-    M5.Display.drawLine(refreshX, refreshY, refreshX2, refreshY, BLACK); // Horizontal line (For last refresh section, bottom left)
-    M5.Display.drawLine(refreshX2, refreshY, refreshX2, M5.Display.height(), BLACK); // Vertical line (For last refresh section, bottom left)
     Serial.println("Update_Display after refresh date");
   }
 
@@ -675,8 +676,15 @@ void setup() {
       delay(1000);
     }
   }
+    
   refreshDateTime(current_date);
   refreshDateTime(before_refresh_date);
+
+  String current_date_refresh = current_date->year + "-" + current_date->month + "-" + current_date->day;
+  M5.Display.setCursor(refreshX, refreshY);
+  M5.Display.printf(current_date_refresh.c_str());
+  M5.Display.drawLine(refreshX, refreshY, refreshX2, refreshY, BLACK); // Horizontal line (For last refresh section, bottom left)
+  M5.Display.drawLine(refreshX2, refreshY, refreshX2, M5.Display.height(), BLACK); // Vertical line (For last refresh section, bottom left)
 }
 
 
@@ -710,7 +718,7 @@ void loop() {
 //  if (batteryLevel / refreshEveryPercent != beforeBattery / refreshEveryPercent && batteryLevel / refreshEveryPercent > beforeBattery / refreshEveryPercent){ //actualise one time at every {refreshEveryPercent}%
   int batteryPercentageRefreshMinute = 10;
   //if (currentTime - lastBatteryUpdateTime >= 60000 * batteryPercentageRefreshMinute || firstLaunch){
-  if ((beforeBattery != batteryLevel && currentTime - lastBatteryUpdateTime >= 5000) || firstLaunch){
+  if ((beforeBattery != batteryLevel && currentTime - lastBatteryUpdateTime >= 60000) || firstLaunch){
     Serial.println();
     Serial.println(batteryLevel);
     Serial.println(beforeBattery != batteryLevel);
@@ -915,6 +923,14 @@ void loop() {
       
       M5.Display.setTextSize(textFontSize);
       M5.Display.setTextColor(BLACK, WHITE);
+
+
+
+      String current_date_refresh = current_date->year + "-" + current_date->month + "-" + current_date->day;
+      M5.Display.setCursor(refreshX, refreshY);
+      M5.Display.printf(current_date_refresh.c_str());
+      M5.Display.drawLine(refreshX, refreshY, refreshX2, refreshY, BLACK); // Horizontal line (For last refresh section, bottom left)
+      M5.Display.drawLine(refreshX2, refreshY, refreshX2, M5.Display.height(), BLACK); // Vertical line (For last refresh section, bottom left)
     }
 
 
@@ -951,6 +967,8 @@ void loop() {
     if (httpResponseCode == 200) {
       Serial.println("API request Success");
       String body = https.getString();
+      Serial.println("bodyyyyyyyyy");
+      Serial.println(body);
       APIText = body;
       response = body;
       int itemsLength = 0;
