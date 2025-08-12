@@ -51,7 +51,7 @@ String APIText = "Default";
 String response = "Default";
 
 bool firstLaunch = true;
-int autoRefreshMinutes = 1; //Every hour
+int autoRefreshMinutes = 15; //Every 15 minutes
 const int MIN_HOUR_REFRESH = 5;
 const int MAX_HOUR_REFRESH = 22;
 
@@ -387,7 +387,7 @@ void Update_Display(String APIText) {
         //startX = APIText.indexOf(prefixString) != -1 ? dateIndents : startX;
         Part_Text_Display(APITextArray[i].c_str(), startX, startY, fontSize, TFT_BLACK, endX, endY);
 
-        startX = (firstLine ? epaper.textWidth(prefixString) : 0); //FAIRE LIGNE QUE prefixString.length() * fontSize / 2 SI PAS 1ère ligne ET QUE CELEL CI CONTENANT prefixString
+        startX = (firstLine ? epaper.textWidth(prefixString) + 13: 0); //FAIRE LIGNE QUE prefixString.length() * fontSize / 2 SI PAS 1ère ligne ET QUE CELEL CI CONTENANT prefixString
         //firstLine = (firstLine ? !firstLine : firstLine);
 
         startY = APIText.indexOf(prefixString) != -1 ? (startY + fontSize / 2) : startY;
@@ -431,7 +431,7 @@ void Update_Display(String APIText) {
     // epaper.setCursor(refreshX + epaper.textWidth("last refresh: "), refreshY2);
     // epaper.print(current_hour_refresh);
     epaper.drawString(current_hour_refresh, refreshX + epaper.textWidth("last refresh: "), refreshY2);
-    epaper.setFreeFont(&FreeSansBold24pt7b);
+    epaper.setFreeFont(&FreeSans24pt7b);
     epaper.setTextSize(textFontSize);
     Serial.println("Update_Display after refresh date");
   }
@@ -551,7 +551,7 @@ void setup() {
   // Initialization settings, executed only once when the program starts
   epaper.begin();
   epaper.fillScreen(TFT_WHITE);
-  epaper.setFreeFont(&FreeSansBold24pt7b);
+  epaper.setFreeFont(&FreeSans24pt7b);
   epaper.setTextSize(1);
 
   refreshY = TFT_HEIGHT - 70;
@@ -656,13 +656,13 @@ void setup() {
       int itemsLength = 0;
       String* items = XMLParser(body, "<t:Contact>", "</t:Contact>", itemsLength);
       epaper.setTextColor(TFT_WHITE);
-      epaper.setFreeFont(&FreeSans24pt7b);
+      epaper.setFreeFont(&FreeSansBold24pt7b);
       epaper.setTextSize(roomFontSize);
       roomDisplayName = replaceAccentChar(XMLGetter(items[0], "<t:DisplayName>", "</t:DisplayName>"));
       //epaper.setCursor(200, (EPFL_room_header_height / 2) - displayFontSize * roomFontSize);
       // epaper.setCursor((EPFL_room_header_width / 2) - (epaper.textWidth(roomDisplayName) / 2), 5);
       epaper.drawString(roomDisplayName.c_str(), 200, 15);
-      epaper.setFreeFont(&FreeSansBold24pt7b);
+      epaper.setFreeFont(&FreeSans24pt7b);
       epaper.setTextSize(textFontSize);
       epaper.setTextColor(TFT_BLACK);
     }
@@ -741,9 +741,11 @@ void loop() {
       //Write room name
       epaper.setTextColor(TFT_WHITE);
       epaper.setTextSize(roomFontSize);
+      epaper.setFreeFont(&FreeSansBold24pt7b);
       // epaper.setCursor((EPFL_room_header_width / 2) - (epaper.textWidth(roomDisplayName)  / 2), 5);
       // epaper.printf(roomDisplayName.c_str());
       epaper.drawString(roomDisplayName.c_str(), (EPFL_room_header_width / 2) - (epaper.textWidth(roomDisplayName)  / 2), 5);
+      epaper.setFreeFont(&FreeSans24pt7b);
       epaper.setTextSize(textFontSize);
       epaper.setTextColor(TFT_BLACK);
 
