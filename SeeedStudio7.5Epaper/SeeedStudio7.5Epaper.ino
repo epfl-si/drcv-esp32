@@ -162,6 +162,42 @@ String xmlRequestGetNameOrigin = R"rawliteral(<?xml version="1.0" encoding="utf-
 
 String xmlRequestGetName = xmlRequestGetNameOrigin;
 
+void refreshDateTime(DateTime* &datetime) {
+  // Configure NTP
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+
+
+
+  int retry = 0;
+  while (!getLocalTime(&timeinfo) && retry < 10) {
+    Serial.println("Waiting for time...");
+    delay(1000);
+    retry++;
+  }
+
+  if (retry == 10) {
+    Serial.println("Failed to get time from NTP.");
+  } else {
+    Serial.println("Time synced successfully!");
+    char timeString[20];
+    strftime(timeString, sizeof(timeString), "%Y-%m-%dT%H:%M:%S", &timeinfo);
+    datetime = new DateTime(timeString);
+    Serial.println("Time defined successfully!");
+  }
+}
+
+void RefreshAndDisplayDate(){
+  refreshDateTime(current_date);
+  refreshDateTime(before_refresh_date);
+
+  String current_date_refresh = current_date->year + "-" + current_date->month + "-" + current_date->day;
+  // epaper.setCursor(refreshX, refreshY);
+  // epaper.printf(current_date_refresh.c_str());
+  epaper.drawString(current_date_refresh.c_str(), refreshX, refreshY);
+  epaper.drawLine(refreshX, refreshY, refreshX2, refreshY, TFT_BLACK); // Horizontal line (For last refresh section, bottom left)
+  epaper.drawLine(refreshX2, refreshY, refreshX2, TFT_HEIGHT, TFT_BLACK); // Vertical line (For last refresh section, bottom left)
+}
+
 void FullDisplayClear(){
   Serial.println("Mega Clear");
   epaper.fillScreen(TFT_BLACK);
@@ -295,36 +331,6 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
   }
   startY = currentY;
 }
-
-
-
-
-void refreshDateTime(DateTime* &datetime) {
-  // Configure NTP
-  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-
-
-
-  int retry = 0;
-  while (!getLocalTime(&timeinfo) && retry < 10) {
-    Serial.println("Waiting for time...");
-    delay(1000);
-    retry++;
-  }
-
-  if (retry == 10) {
-    Serial.println("Failed to get time from NTP.");
-  } else {
-    Serial.println("Time synced successfully!");
-    char timeString[20];
-    strftime(timeString, sizeof(timeString), "%Y-%m-%dT%H:%M:%S", &timeinfo);
-    datetime = new DateTime(timeString);
-    Serial.println("Time defined successfully!");
-  }
-}
-
-
-
 
 
 void Update_Display(String APIText) {
@@ -665,15 +671,20 @@ void setup() {
     }
   }
     
-  refreshDateTime(current_date);
-  refreshDateTime(before_refresh_date);
 
-  String current_date_refresh = current_date->year + "-" + current_date->month + "-" + current_date->day;
-  // epaper.setCursor(refreshX, refreshY);
-  // epaper.printf(current_date_refresh.c_str());
-  epaper.drawString(current_date_refresh.c_str(), refreshX, refreshY);
-  epaper.drawLine(refreshX, refreshY, refreshX2, refreshY, TFT_BLACK); // Horizontal line (For last refresh section, bottom left)
-  epaper.drawLine(refreshX2, refreshY, refreshX2, TFT_HEIGHT, TFT_BLACK); // Vertical line (For last refresh section, bottom left)
+
+
+
+  // refreshDateTime(current_date);
+  // refreshDateTime(before_refresh_date);
+
+  // String current_date_refresh = current_date->year + "-" + current_date->month + "-" + current_date->day;
+  // // epaper.setCursor(refreshX, refreshY);
+  // // epaper.printf(current_date_refresh.c_str());
+  // epaper.drawString(current_date_refresh.c_str(), refreshX, refreshY);
+  // epaper.drawLine(refreshX, refreshY, refreshX2, refreshY, TFT_BLACK); // Horizontal line (For last refresh section, bottom left)
+  // epaper.drawLine(refreshX2, refreshY, refreshX2, TFT_HEIGHT, TFT_BLACK); // Vertical line (For last refresh section, bottom left)
+  RefreshAndDisplayDate();
 }
 
 
@@ -734,7 +745,9 @@ void loop() {
       // epaper.printf(roomDisplayName.c_str());
       epaper.drawString(roomDisplayName.c_str(), (EPFL_room_header_width / 2) - (epaper.textWidth(roomDisplayName)  / 2), 5);
       epaper.setTextSize(textFontSize);
-      epaper.setTextColor(TFT_BLACK); 
+      epaper.setTextColor(TFT_BLACK);
+
+      RefreshAndDisplayDate();
     }
 
     
