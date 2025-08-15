@@ -39,7 +39,7 @@ EPaper epaper;
 
 bool boutton_clicked = false;
 
-bool dateForTestingDevelopment = true;
+bool dateForTestingDevelopment = false;
 String dateForTestingEnd = "2025-06-11"; //2025-06-12 or 2025-06-11
 String dateForTestingStart = dateForTestingEnd + "T06:30:24";
 int dateIndents = 20;
@@ -52,12 +52,12 @@ String response = "Default";
 
 bool firstLaunch = true;
 int autoRefreshMinutes = 15; //Every 15 minutes
+int nbRefreshBeforeFullRefresh = 4; // depends of minutesbeforeautorefresh (autoRefreshMinutes) but if it's 15min, then this is an hour
 const int MIN_HOUR_REFRESH = 5;
 const int MAX_HOUR_REFRESH = 22;
 
 // NTP Server settings
 const char* ntpServer = "pool.ntp.org";
-unsigned long lastUpdateTime = 0;  // The timestamp of the last update time
 
 // Adjust for your timezone
 const long gmtOffset_sec = 7200;
@@ -104,11 +104,13 @@ int refreshY = 0;
 int refreshY2 = 0;
 
 int nbRefresh = 0;
-int nbRefreshBeforeFullRefresh = 3;
+
 
 int lastBatteryUpdateTime = 0;
 
 int selectedRoomId = 0;
+
+int actualHour = MIN_HOUR_REFRESH;
 
 
 String xmlRequestOrigin = R"rawliteral(<?xml version="1.0" encoding="utf-8"?>
@@ -207,6 +209,13 @@ void FullDisplayClear(){
 }
 
 void PartialDisplayRefresh(){
+  epaper.fillRect(0, EPFL_room_header_height, TFT_WIDTH, TFT_HEIGHT - (EPFL_room_header_height * 2), TFT_WHITE); //(EPFL_room_header_height * 2) is for avoid to remove hour refresh => it's an aproximatly height
+  epaper.update();
+}
+
+void PartialDisplayClear(){
+  epaper.fillRect(0, EPFL_room_header_height, TFT_WIDTH, TFT_HEIGHT - (EPFL_room_header_height * 2), TFT_BLACK); //(EPFL_room_header_height * 2) is for avoid to remove hour refresh => it's an aproximatly height
+  epaper.update();
   epaper.fillRect(0, EPFL_room_header_height, TFT_WIDTH, TFT_HEIGHT - (EPFL_room_header_height * 2), TFT_WHITE); //(EPFL_room_header_height * 2) is for avoid to remove hour refresh => it's an aproximatly height
   epaper.update();
 }
@@ -550,7 +559,6 @@ void setup() {
 
   // Initialization settings, executed only once when the program starts
   epaper.begin();
-  epaper.fillScreen(TFT_WHITE);
   epaper.setFreeFont(&FreeSans24pt7b);
   epaper.setTextSize(1);
 
@@ -633,9 +641,9 @@ void setup() {
   Serial.println("IP address set: ");
   Serial.println(WiFi.localIP());  //print LAN IP
 
-//  Serial.println("----------------------> RESET STRING <-----------------------");
-//  Serial.println(resetString);
-//  PartialDisplayRefresh();
+  //  Serial.println("----------------------> RESET STRING <-----------------------");
+  //  Serial.println(resetString);
+  //  PartialDisplayRefresh();
 
   //delay(10000);
 
@@ -709,27 +717,33 @@ void setup() {
 
 void loop() {
   //Serial.print("~");
-  unsigned long currentTime = millis();
   //delay(100);
 
-  epaper.update();
-  int refreshEveryPercent = 5; //all 5%
-//  if (batteryLevel / refreshEveryPercent != beforeBattery / refreshEveryPercent && batteryLevel / refreshEveryPercent > beforeBattery / refreshEveryPercent){ //actualise one time at every {refreshEveryPercent}%
-  int batteryPercentageRefreshMinute = 10;
+  //  if (batteryLevel / refreshEveryPercent != beforeBattery / refreshEveryPercent && batteryLevel / refreshEveryPercent > beforeBattery / refreshEveryPercent){ //actualise one time at every {refreshEveryPercent}%
   //if (currentTime - lastBatteryUpdateTime >= 60000 * batteryPercentageRefreshMinute || firstLaunch){
 
 
-//    for (int i = 0; i < API_EMAIL_TARGET_ARRAY_LENGTH; i++){
-//      Serial.println(API_EMAIL_TARGET_ARRAY[i]);
-//    }
+  //    for (int i = 0; i < API_EMAIL_TARGET_ARRAY_LENGTH; i++){
+  //      Serial.println(API_EMAIL_TARGET_ARRAY[i]);
+  //    }
 
 
   //  Serial.print("WWW: ");
   //  Serial.println(current_date->hour.toInt());
 
-  if ((current_date->hour.toInt() >= MIN_HOUR_REFRESH && current_date->hour.toInt() <= MAX_HOUR_REFRESH && currentTime - lastUpdateTime >= 60000 * autoRefreshMinutes) || firstLaunch) {
+  if (actualHour >= MIN_HOUR_REFRESH && actualHour <= MAX_HOUR_REFRESH){
+
     startX = 0;
     xmlRequest = xmlRequestOrigin;
+
+
+
+    // PartialDisplayRefresh();
+    PartialDisplayClear();
+
+
+
+
     if ((nbRefresh % nbRefreshBeforeFullRefresh == 0 && nbRefresh != 0)){
       //Clear
       FullDisplayClear();
@@ -752,8 +766,20 @@ void loop() {
       RefreshAndDisplayDate();
     }
 
-    
-    lastUpdateTime = currentTime;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     //PartialDisplayRefresh(); //Refresh partial replace (replacing all writing area with space)
 
     firstLaunch = false;
@@ -761,18 +787,18 @@ void loop() {
     //PartialDisplayRefresh();
 
     
-//    delay(1000);
-//    Serial.println("resetString");
-//    Serial.println("resetString");
-//    Serial.println(resetString);
-//    Serial.println("resetString");
-//    PartialDisplayRefresh();
-//    Serial.println(" ------------->                    RESEEEEEEEEEEEEEEEEEEEEEEET                    <-------------");
-//    Serial.println(" ------------->                    RESEEEEEEEEEEEEEEEEEEEEEEET                    <-------------");
-//    Serial.println(" ------------->                    RESEEEEEEEEEEEEEEEEEEEEEEET                    <-------------");
-//    Serial.println(" ------------->                    RESEEEEEEEEEEEEEEEEEEEEEEET                    <-------------");
-//    epaper.update();
-//    delay(1000);
+  //    delay(1000);
+  //    Serial.println("resetString");
+  //    Serial.println("resetString");
+  //    Serial.println(resetString);
+  //    Serial.println("resetString");
+  //    PartialDisplayRefresh();
+  //    Serial.println(" ------------->                    RESEEEEEEEEEEEEEEEEEEEEEEET                    <-------------");
+  //    Serial.println(" ------------->                    RESEEEEEEEEEEEEEEEEEEEEEEET                    <-------------");
+  //    Serial.println(" ------------->                    RESEEEEEEEEEEEEEEEEEEEEEEET                    <-------------");
+  //    Serial.println(" ------------->                    RESEEEEEEEEEEEEEEEEEEEEEEET                    <-------------");
+  //    epaper.update();
+  //    delay(1000);
 
     PartialDisplayRefresh();
     Update_Display(replaceAccentChar(APIRequestText));
@@ -810,10 +836,7 @@ void loop() {
 
     refreshDateTime(current_date);
     Serial.println("After hour request");
-
     PartialDisplayRefresh();
-    //epaper.update();
-
 
     String dateString = "" + current_date->year + "-" + current_date->month + "-" + current_date->day;
     String hourString = String(current_date->hour.toInt() - 2 >= 0 ? current_date->hour.toInt() - 2 : current_date->hour.toInt());
@@ -881,14 +904,46 @@ void loop() {
       firstLaunch = true;
     }
 
-
+    PartialDisplayRefresh();
     Update_Display(APIText);
+    epaper.update();
 
     refreshDateTime(before_refresh_date);
     Serial.printf("nbRefresh (%s) %% nbRefreshBeforeFullRefresh (%s) == 0 (%s)", String(nbRefresh), String(nbRefreshBeforeFullRefresh), String(nbRefresh % nbRefreshBeforeFullRefresh == 0));
     Serial.println();
     Serial.printf("nbRefresh (%s) %% nbRefreshBeforeFullRefresh (%s) = (%s)", String(nbRefresh), String(nbRefreshBeforeFullRefresh), String(nbRefresh % nbRefreshBeforeFullRefresh));
     nbRefresh++;
-    lastBatteryUpdateTime = currentTime;
+
+    if (!firstLaunch){
+      actualHour = before_refresh_date->hour.toInt();
+      int actualMinute = before_refresh_date->minute.toInt();
+      int actualSecond = before_refresh_date->second.toInt();
+      int NextHour = 0;
+      int NextMinute = 0;
+
+
+      if (actualHour < MIN_HOUR_REFRESH || actualHour > MAX_HOUR_REFRESH){
+        NextHour = MIN_HOUR_REFRESH + (24 - actualHour);
+        Serial.println("");
+        Serial.println("hour");
+        Serial.println(NextHour);
+      }
+
+
+      for (int i = 0; i < floor(60 / autoRefreshMinutes) + 1; i++){
+        int next = i * autoRefreshMinutes + 8; //to refresh all 8, 23, 38 and 53
+        next = next >= 60 ? next -60 : next;
+        if (next - actualMinute > 0 && next - actualMinute <= autoRefreshMinutes){
+          NextMinute = next;
+          break;
+        }
+      }
+      NextMinute = NextMinute < actualMinute ? NextMinute + 60 : NextMinute;
+      int delayDifference = (NextHour * 3600000) + (NextMinute - actualMinute - 1) * 60000 + (60 - actualSecond) * 1000;
+      Serial.println(actualMinute);
+      Serial.println(NextMinute);
+      Serial.println(delayDifference);
+      delay(delayDifference);
+    }
   }
 }
