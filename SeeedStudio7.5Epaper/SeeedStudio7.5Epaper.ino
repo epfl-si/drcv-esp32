@@ -40,8 +40,8 @@ EPaper epaper;
 bool boutton_clicked = false;
 
 bool dateForTestingDevelopment = false;
-String dateForTestingEnd = "2025-06-11"; //2025-06-12 or 2025-06-11
-String dateForTestingStart = dateForTestingEnd + "T06:30:24";
+String dateForTestingEnd = "2025-08-18"; //2025-06-12 or 2025-06-11
+String dateForTestingStart = dateForTestingEnd + "T12:30:24";
 int dateIndents = 20;
 
 int counter = 0;
@@ -72,6 +72,7 @@ uint8_t Image_BW[15000];    // Declare an array of 15000 bytes to store black an
 
 int beforeStartX = 0;
 int startX = 0; // Starting horizontal axis
+int additionalIndentX = 20;
 int startY = 0;  // Starting vertical axis
 
 // int fontSize = epaper.fontHeight(); // Font size
@@ -195,7 +196,7 @@ void RefreshAndDisplayDate(){
   String current_date_refresh = current_date->year + "-" + current_date->month + "-" + current_date->day;
   // epaper.setCursor(refreshX, refreshY);
   // epaper.printf(current_date_refresh.c_str());
-  epaper.drawString(current_date_refresh.c_str(), refreshX, refreshY);
+  epaper.drawString(current_date_refresh.c_str(), refreshX2 / 2 - epaper.textWidth(current_date_refresh) / 2, refreshY + 10);
   epaper.drawLine(refreshX, refreshY, refreshX2, refreshY, TFT_BLACK); // Horizontal line (For last refresh section, bottom left)
   epaper.drawLine(refreshX2, refreshY, refreshX2, TFT_HEIGHT, TFT_BLACK); // Vertical line (For last refresh section, bottom left)
 }
@@ -257,16 +258,49 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
     Serial.print(" = ");
     Serial.print(ctLen);
     Serial.print(" (");
-    Serial.print(epaper.textWidth(ct) + initX + indentLocale);
+    Serial.print(epaper.textWidth(ct) + initX + indentLocale + additionalIndentX);
     Serial.print(" > ");
     Serial.print(endX - currentX);
     Serial.println(")");
     Serial.println(epaper.textWidth("W"));
     Serial.println(initX);
     Serial.println(indentLocale);
+    Serial.println("ggggggggggggggggggg");
+    Serial.println(ct);
+    Serial.println("epaper.textWidth(ct) + initX + indentLocale + additionalIndentX > (endX - currentX)");
+    Serial.println(epaper.textWidth(ct));
+    Serial.print("initX ");
+    Serial.println(initX);
+    Serial.print("indentLocale ");
+    Serial.println(indentLocale);
+    Serial.print("endX ");
+    Serial.println(endX);
+    Serial.print("epaper.width() ");
+    Serial.println(epaper.width());
+    Serial.print("currentX ");
+    Serial.println(currentX);
+    Serial.print("additionalIndentX ");
+    Serial.println(additionalIndentX);
+    Serial.print("content ");
+    Serial.println(content);
+    Serial.print("ct ");
+    Serial.println(ct);
+    Serial.print("global length ");
+    Serial.println(epaper.textWidth(content) + initX + indentLocale + additionalIndentX);
+    Serial.print("global length calculated ");
+    Serial.println((epaper.textWidth(strTempLine) + initX + indentLocale + additionalIndentX) + epaper.textWidth(ct));
+    Serial.print("test global length 1 ");
+    Serial.println(epaper.textWidth(content) > endX - (initX + indentLocale + additionalIndentX));
+    Serial.print("test global length 2 (epaper.textWidth(ct) + initX + indentLocale + additionalIndentX) ");
+    Serial.println(epaper.textWidth(ct) + initX + indentLocale + additionalIndentX);
+    Serial.print("test global length 2 (endX - currentX) ");
+    Serial.println((endX - currentX));
+    Serial.print("test global length 2 epaper.textWidth(ct) + initX + indentLocale + additionalIndentX > (endX - currentX) ");
+    Serial.println(epaper.textWidth(ct) + initX + indentLocale + additionalIndentX > (endX - currentX));
+    Serial.println("ggggggggggggggggggg");
     // ctLen * (fontSize / 2) -> epaper.textWidth(ct);
-    if (epaper.textWidth(ct) + initX + indentLocale > (endX - currentX)) {
-      if (epaper.textWidth(ct) > (endX - initX + indentLocale)) { //Check if word if larger than one line
+    if (currentX + epaper.textWidth(ct + " ") + initX + indentLocale + additionalIndentX > endX) {
+      if (epaper.textWidth(ct + " ") > endX - (initX + indentLocale + additionalIndentX)) { //Check if word if larger than one line
         int ctLengthPart = 0;
         while (ctLengthPart < epaper.textWidth(ct)) {
           //int pxAvailableForCurrentLine = (endX - currentX) - (ctLen * (fontSize/2) + initX);
@@ -282,11 +316,11 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
           CurrentLine += (indexIfSeparator == 1 ? "-" : "");
           // prefixString.length() * fontSize / 2 -> epaper.textWidth(prefixString)
           indentLocale = epaper.textWidth(prefixString) * ((String(content).indexOf(prefixString) != -1) ? 2 : 1);
-          // epaper.setCursor(initX + indentLocale, currentY);
+          // epaper.setCursor(initX + indentLocale + additionalIndentX, currentY);
           // epaper.printf(CurrentLine.c_str());
-          epaper.drawString(CurrentLine.c_str(), initX + indentLocale, currentY);
-          //ycanvas.drawString(CurrentLine.c_str(), initX + indentLocale, currentY);
-          //DrawString(CurrentLine.c_str(), initX + indentLocale, currentY);
+          epaper.drawString(CurrentLine.c_str(), initX + indentLocale + additionalIndentX, currentY);
+          //ycanvas.drawString(CurrentLine.c_str(), initX + indentLocale + additionalIndentX, currentY);
+          //DrawString(CurrentLine.c_str(), initX + indentLocale + additionalIndentX, currentY);
           currentY += lineHeight;
         }
         strTempLine = "";
@@ -295,10 +329,10 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
         while (strTempLine.length() < (endX - startX) / epaper.textWidth("v")) {
           strTempLine += ' ';
         }
-        // epaper.setCursor(initX + indentLocale, currentY);
+        // epaper.setCursor(initX + indentLocale + additionalIndentX, currentY);
         // epaper.printf(strTempLine.c_str());
-        epaper.drawString(strTempLine.c_str(), initX + indentLocale, currentY);
-        //canvas.drawString(strTempLine.c_str(), initX + indentLocale, currentY);
+        epaper.drawString(strTempLine.c_str(), initX + indentLocale + additionalIndentX, currentY);
+        //canvas.drawString(strTempLine.c_str(), initX + indentLocale + additionalIndentX, currentY);
         // prefixString.length() * fontSize / 2 -> epaper.textWidth(prefixString)
         indentLocale = epaper.textWidth(prefixString) * ((String(content).indexOf(prefixString) != -1) ? 2 : 1);
         currentX = 0;
@@ -310,9 +344,27 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
     }
     else {
       strTempLine += ct;
-      strTempLine += ' ';
+      if (j != len - 1){
+        strTempLine += ' ';
+      }
+
+      Serial.print("currentX ");
+      Serial.println(currentX);
+      Serial.print("ct ");
+      Serial.println(ct);
+      Serial.print("strTempLine ");
+      Serial.println(strTempLine);
 
       currentX = epaper.textWidth(strTempLine);
+
+      Serial.println("strTempLine");
+      Serial.println(strTempLine);
+      Serial.println("currentX");
+      Serial.println(currentX);
+      Serial.print("global length ");
+      Serial.println(epaper.textWidth(content) + initX + indentLocale + additionalIndentX);
+      Serial.print("global length calculated ");
+      Serial.println(currentX + initX + indentLocale + additionalIndentX);
 
       // If the current Y coordinate plus font size exceeds the area height, stop displaying
       if (currentY + lineHeight > endY) {
@@ -325,10 +377,10 @@ void Part_Text_Display(const char* content, int startX, int &startY, int fontSiz
         }
         // Display this line
         
-        // epaper.setCursor(initX + indentLocale, currentY);
+        // epaper.setCursor(initX + indentLocale + additionalIndentX, currentY);
         // epaper.printf(strTempLine.c_str());
-        epaper.drawString(strTempLine.c_str(), initX + indentLocale, currentY);
-        //canvas.drawString(strTempLine.c_str(), initX + indentLocale, currentY);
+        epaper.drawString(strTempLine.c_str(), initX + indentLocale + additionalIndentX, currentY);
+        //canvas.drawString(strTempLine.c_str(), initX + indentLocale + additionalIndentX, currentY);
         // prefixString.length() * fontSize / 2 -> epaper.textWidth(prefixString)
         indentLocale = epaper.textWidth(prefixString) * ((String(content).indexOf(prefixString) != -1) ? 2 : 1);
         currentX = 0;
@@ -400,6 +452,9 @@ void Update_Display(String APIText) {
         //firstLine = (firstLine ? !firstLine : firstLine);
 
         startY = APIText.indexOf(prefixString) != -1 ? (startY + fontSize / 2) : startY;
+      }
+      if (len > maxElem){
+        Part_Text_Display("[...]", startX, startY, fontSize, TFT_BLACK, endX, endY);
       }
     }
     else if (len == 1) {
@@ -669,7 +724,19 @@ void setup() {
       roomDisplayName = replaceAccentChar(XMLGetter(items[0], "<t:DisplayName>", "</t:DisplayName>"));
       //epaper.setCursor(200, (EPFL_room_header_height / 2) - displayFontSize * roomFontSize);
       // epaper.setCursor((EPFL_room_header_width / 2) - (epaper.textWidth(roomDisplayName) / 2), 5);
-      epaper.drawString(roomDisplayName.c_str(), 200, 15);
+      
+      // epaper.drawString(roomDisplayName.c_str(), 200, 15);
+      Serial.println("AAAAAAAAAAAAAH");
+      Serial.println(roomDisplayName);
+      Serial.println(EPFL_room_header_height);
+      Serial.println(EPFL_room_header_height/2);
+      Serial.println(epaper.textsize);
+      Serial.println(epaper.fontHeight());
+      Serial.println(epaper.height());
+      Serial.println(epaper.getTextDatum());
+      Serial.println(epaper.textfont);
+      Serial.println("AAAAAAAAAAAAAH");
+      epaper.drawString(roomDisplayName.c_str(), 150 - (epaper.textWidth(roomDisplayName) / 2) + ((725-150)/2), (EPFL_room_header_height / 2) - (35 / 2));
       epaper.setFreeFont(&FreeSans24pt7b);
       epaper.setTextSize(textFontSize);
       epaper.setTextColor(TFT_BLACK);
@@ -758,7 +825,10 @@ void loop() {
       epaper.setFreeFont(&FreeSansBold24pt7b);
       // epaper.setCursor((EPFL_room_header_width / 2) - (epaper.textWidth(roomDisplayName)  / 2), 5);
       // epaper.printf(roomDisplayName.c_str());
-      epaper.drawString(roomDisplayName.c_str(), (EPFL_room_header_width / 2) - (epaper.textWidth(roomDisplayName)  / 2), 5);
+
+      // epaper.drawString(roomDisplayName.c_str(), (EPFL_room_header_width / 2) - (epaper.textWidth(roomDisplayName)  / 2), 5);
+      epaper.drawString(roomDisplayName.c_str(), 150 - (epaper.textWidth(roomDisplayName) / 2) + ((725-150)/2), (EPFL_room_header_height / 2) - (35 / 2));
+
       epaper.setFreeFont(&FreeSans24pt7b);
       epaper.setTextSize(textFontSize);
       epaper.setTextColor(TFT_BLACK);
@@ -868,6 +938,7 @@ void loop() {
       String* items = XMLParser(body, "<t:Items>", "</t:Items>", itemsLength);
       int calendarItemLength = 0;
       String* calendarItem = XMLParser(items[0], "<t:CalendarItem>", "</t:CalendarItem>", calendarItemLength);
+      Serial.println(calendarItemLength);
       Event *eventList[calendarItemLength];
       for (int i = 0; i < calendarItemLength; i++) {
         eventList[i] = new Event(
@@ -886,6 +957,7 @@ void loop() {
         else {
           APIText = "";
           for (int i = 0; i < calendarItemLength; i++) {
+            Serial.println(i);
             String separator_string = i == 0 ? prefixString : separator;
             String res = separator_string + ((eventList[i]->startDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[i]->startDateTime).hour.toInt() + 2) : (eventList[i]->startDateTime).hour.toInt() + 2) + ":" + (eventList[i]->startDateTime).minute + "-" + ((eventList[i]->endDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[i]->endDateTime).hour.toInt() + 2) : (eventList[i]->endDateTime).hour.toInt() + 2) + ":" + (eventList[i]->endDateTime).minute + " " + eventList[i]->subject;
             APIText += res;
