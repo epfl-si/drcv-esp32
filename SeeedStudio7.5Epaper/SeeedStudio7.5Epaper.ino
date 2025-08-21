@@ -994,10 +994,15 @@ void loop() {
       int NextMinute = 0;
 
 
+      // actualHour = 23;
+      // actualMinute = 0;
+      // actualSecond = 8;
       if (actualHour < MIN_HOUR_REFRESH || actualHour > MAX_HOUR_REFRESH){
         NextHour = MIN_HOUR_REFRESH + (24 - actualHour);
         Serial.println("");
-        Serial.println("hour");
+        Serial.println("actualHour");
+        Serial.println(actualHour);
+        Serial.println("NextHour");
         Serial.println(NextHour);
       }
 
