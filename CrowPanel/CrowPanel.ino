@@ -53,7 +53,7 @@ String APIText = "Default";
 String response = "Default";
 
 bool firstLaunch = true;
-int autoRefreshMinutes = 60; //Every hour
+int autoRefreshMinutes = 15; //Every 15min
 const int MIN_HOUR_REFRESH = 5;
 const int MAX_HOUR_REFRESH = 22;
 
@@ -110,6 +110,8 @@ String xmlRequest = R"rawliteral(<?xml version="1.0" encoding="utf-8"?>
       </m:FindItem>
     </soap:Body>
   </soap:Envelope>)rawliteral";
+
+String xmlRequestModified = xmlRequest;
 
 
 String xmlRequestGetName = R"rawliteral(<?xml version="1.0" encoding="utf-8"?>
@@ -427,6 +429,7 @@ void setup() {
   Serial.begin(115200);
   delay(10);
   xmlRequest.replace("{email}", API_EMAIL_TARGET); // Replace the {email} with the real email target in secrets.h
+  xmlRequestModified = xmlRequest;
 
 
   // Initialization settings, executed only once when the program starts
@@ -564,6 +567,8 @@ void loop() {
 
     Update_Display(replaceAccentChar(APIRequestText));
 
+    xmlRequestModified = xmlRequest;
+
 
 
 
@@ -592,15 +597,30 @@ void loop() {
 
 
     refreshDateTime(current_date);
-    Serial.println("After hour request");
 
 
     String dateString = "" + current_date->year + "-" + current_date->month + "-" + current_date->day;
     String hourString = String(current_date->hour.toInt() - 2 >= 0 ? current_date->hour.toInt() - 2 : current_date->hour.toInt());
     String dateTimeString = dateString + "T" + (hourString.length() == 1 ? "0" + hourString : hourString) + ":" + current_date->minute + ":" + current_date->second;
 
-    xmlRequest.replace("{start}", dateForTestingDevelopment ? dateForTestingStart : dateTimeString); // Replace the {start} with the current datetime
-    xmlRequest.replace("{end}", dateForTestingDevelopment ? dateForTestingEnd : dateString); // Replace the {end} with the current date
+    Serial.println("After hour request");
+    Serial.println("After hour request");
+    Serial.println("After hour request");
+    Serial.println(dateTimeString);
+    Serial.println("After hour request");
+    Serial.println("After hour request");
+    Serial.println("After hour request");
+
+    xmlRequestModified.replace("{start}", dateForTestingDevelopment ? dateForTestingStart : dateTimeString); // Replace the {start} with the current datetime
+    xmlRequestModified.replace("{end}", dateForTestingDevelopment ? dateForTestingEnd : dateString); // Replace the {end} with the current date
+
+    Serial.println("xmlRequestModified");
+    Serial.println("xmlRequestModified");
+    Serial.println("xmlRequestModified");
+    Serial.println(xmlRequestModified);
+    Serial.println("xmlRequestModified");
+    Serial.println("xmlRequestModified");
+    Serial.println("xmlRequestModified");
 
     Serial.print("Connecting to website: ");
     Serial.println(API_SERVICE_ENDPOINT);
@@ -610,12 +630,15 @@ void loop() {
     https.begin(API_SERVICE_ENDPOINT);
     https.addHeader("Content-Type", "text/xml");
     https.setAuthorization(API_USERNAME, API_PASSWORD);
-    int httpResponseCode = https.POST(xmlRequest);
+    int httpResponseCode = https.POST(xmlRequestModified);
     Serial.println("After API request");
+    Serial.println("Another API request !!");
 
     if (httpResponseCode == 200) {
       Serial.println("API request Success");
       String body = https.getString();
+      Serial.println("Another API response !!");
+      Serial.println(body);
       APIText = body;
       response = body;
       int itemsLength = 0;
@@ -657,6 +680,9 @@ void loop() {
       response = "Error check Serial";
     }
 
+
+    Serial.println("Another APIText !!");
+    Serial.println(APIText);
 
     Update_Display(resetString); //Refresh partial replace (replacing all writing area with space)
     Update_Display(APIText);
