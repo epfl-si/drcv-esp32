@@ -737,6 +737,8 @@ void setup() {
       Serial.println(epaper.textfont);
       Serial.println("AAAAAAAAAAAAAH");
       epaper.drawString(roomDisplayName.c_str(), 150 - (epaper.textWidth(roomDisplayName) / 2) + ((725-150)/2), (EPFL_room_header_height / 2) - (35 / 2));
+      epaper.update();
+      // delay(500);
       epaper.setFreeFont(&FreeSans24pt7b);
       epaper.setTextSize(textFontSize);
       epaper.setTextColor(TFT_BLACK);
@@ -1016,11 +1018,13 @@ void loop() {
         }
       }
       NextMinute = NextMinute < actualMinute ? NextMinute + 60 : NextMinute;
-      int delayDifference = (NextHour * 3600000) + (NextMinute - actualMinute - 1) * 60000 + (60 - actualSecond) * 1000;
+      unsigned long delayDifference = (NextHour * 3600000) + (NextMinute - actualMinute - 1) * 60000 + (60 - actualSecond) * 1000;
       Serial.println(actualMinute);
       Serial.println(NextMinute);
       Serial.println(delayDifference);
+      // epaper.sleep();
       delay(delayDifference);
+      // epaper.wake();
     }
   }
 }
