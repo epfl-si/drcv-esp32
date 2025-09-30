@@ -53,9 +53,9 @@ String APIText = "Default";
 String response = "Default";
 
 bool firstLaunch = true;
-int autoRefreshMinutes = 15; //Every 15min
-const int MIN_HOUR_REFRESH = 5;
-const int MAX_HOUR_REFRESH = 22;
+int autoRefreshMinutes = 1; //Every 15min
+const int MIN_HOUR_REFRESH = 7;
+const int MAX_HOUR_REFRESH = 20;
 
 // NTP Server settings
 const char* ntpServer = "pool.ntp.org";
@@ -78,6 +78,8 @@ int startY = 0;  // Starting vertical axis
 int fontSize = 24; // Font size
 int endX = 400;    // End horizontal axis
 int endY = 300;    // End vertical axis
+
+int addHour = 0;
 
 
 
@@ -534,6 +536,14 @@ void setup() {
 void loop() {
   Serial.print("~");
   unsigned long currentTime = millis();
+  Serial.print(currentTime);
+  Serial.print(" - ");
+  Serial.print(lastUpdateTime);
+  Serial.print(" = ");
+  Serial.print(currentTime - lastUpdateTime);
+  Serial.print(" (");
+  Serial.print(current_date->minute.toInt());
+  Serial.println(")");
   delay(100);
 
   if (digitalRead(BUTTON_DOWN) == LOW && !boutton_clicked) {
@@ -559,7 +569,8 @@ void loop() {
   //  Serial.print("WWW: ");
   //  Serial.println(current_date->hour.toInt());
 
-  if ((current_date->hour.toInt() >= MIN_HOUR_REFRESH && current_date->hour.toInt() <= MAX_HOUR_REFRESH && currentTime - lastUpdateTime >= 60000 * autoRefreshMinutes) || manualRefresh || firstLaunch) {
+  if ((current_date->hour.toInt() + addHour >= MIN_HOUR_REFRESH && current_date->hour.toInt() + addHour <= MAX_HOUR_REFRESH && currentTime - lastUpdateTime >= 60000 * autoRefreshMinutes) || manualRefresh || firstLaunch) {
+    addHour = 0;
     lastUpdateTime = currentTime;
     Update_Display(resetString); //Refresh partial replace (replacing all writing area with space)
 
@@ -689,5 +700,8 @@ void loop() {
 
     refreshDateTime(before_refresh_date);
     manualRefresh = false;
+  }
+  else{
+    addHour = floor((currentTime - lastUpdateTime) / (60 * 60000));
   }
 }
