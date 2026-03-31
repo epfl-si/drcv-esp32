@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - ./CrowPanel:/app/CrowPanel
+      - ./src:/app/src
+    container_name: tpi-backend
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:3000"
+    container_name: tpi-frontend
