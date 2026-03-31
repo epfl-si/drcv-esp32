@@ -1,2 +1,5 @@
 secrets.h
 *.bin
+node_modules/
+pnpm-lock.yaml
+.env

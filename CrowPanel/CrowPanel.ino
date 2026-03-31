@@ -8,6 +8,7 @@
 #endif
 #include <WiFiClientSecure.h>
 #include "../src/secrets.h"  // Include the secrets.h file for WiFi credentials
+#include "../src/config.h"
 
 #include "../src/xml_parser/xml_parser.h" // Include my xml parser method
 #include "../src/xml_parser/xml_parser.cpp" // Include my xml parser method
@@ -430,7 +431,7 @@ void setup() {
 
   Serial.begin(115200);
   delay(10);
-  xmlRequest.replace("{email}", API_EMAIL_TARGET); // Replace the {email} with the real email target in secrets.h
+  xmlRequest.replace("{email}", String(ROOM_NAME) + API_EMAIL_TARGET_SUFFIX); // Replace the {email} with the real email target in secrets.h
   xmlRequestModified = xmlRequest;
 
 
@@ -491,7 +492,7 @@ void setup() {
   https.begin(API_SERVICE_ENDPOINT);
   https.addHeader("Content-Type", "text/xml");
   https.setAuthorization(API_USERNAME, API_PASSWORD);
-  xmlRequestGetName.replace("{email}", API_EMAIL_TARGET);
+  xmlRequestGetName.replace("{email}", String(ROOM_NAME) + API_EMAIL_TARGET_SUFFIX);
   int httpResponseCode  = 0;
   while (httpResponseCode != 200) {
     Serial.println("Get room name");
