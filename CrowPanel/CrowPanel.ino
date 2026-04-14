@@ -39,9 +39,6 @@
 #define BUTTON_SCROLL_DOWN 4
 #define BUTTON_SCROLL_CLICK 5
 
-bool boutton_clicked = false;
-bool manualRefresh = false;
-
 bool dateForTestingDevelopment = false;
 String dateForTestingEnd = "2025-06-11"; //2025-06-12
 String dateForTestingStart = dateForTestingEnd + "T12:30:24";
@@ -53,14 +50,12 @@ String resetString = " " + separator + " " + separator + " " + separator + " " +
 String APIText = "Default";
 String response = "Default";
 
-bool firstLaunch = true;
-int autoRefreshMinutes = 1; //Every 15min
+int autoRefreshMinutes = 15;
 const int MIN_HOUR_REFRESH = 7;
 const int MAX_HOUR_REFRESH = 20;
 
 // NTP Server settings
 const char* ntpServer = "pool.ntp.org";
-unsigned long lastUpdateTime = 0;  // The timestamp of the last update time
 
 // Adjust for your timezone
 const long gmtOffset_sec = 7200;
@@ -79,9 +74,6 @@ int startY = 0;  // Starting vertical axis
 int fontSize = 24; // Font size
 int endX = 400;    // End horizontal axis
 int endY = 300;    // End vertical axis
-
-int addHour = 0;
-
 
 
 String xmlRequest = R"rawliteral(<?xml version="1.0" encoding="utf-8"?>
@@ -356,19 +348,6 @@ bool isCurrentEvent(Event* event, DateTime* current_date) {
 
 
 
-void bouton_click_handler(String button) {
-  boutton_clicked = true;
-  Serial.print(button);
-  Serial.println(" Pressed");
-  delay(600);
-  boutton_clicked = false;
-  if (button == "BUTTON_UP" || button == "BUTTON_DOWN" || button == "BUTTON_SCROLL_CLICK") {
-    manualRefresh = true;
-  }
-}
-
-
-
 
 String replaceAccentChar(String text) {
   struct KeyValue {
@@ -454,9 +433,6 @@ void setup() {
 
   EPD_ShowPicture(0, 0, 400, 80, EPFL_INN011_header, BLACK);
 
-  EPD_ShowPicture(400 - 32, 300 - 32 - 16, 32, 32, epd_bitmap_refresh, BLACK);
-
-
   Serial.println("Before Wifi text");
   Update_Display(replaceAccentChar(Loading_Message));
   Serial.println("After Wifi text");
@@ -512,197 +488,164 @@ void setup() {
   }
   refreshDateTime(current_date);
   refreshDateTime(before_refresh_date);
-}
 
 
+  Update_Display(resetString); //Refresh partial replace (replacing all writing area with space)
+  Update_Display(replaceAccentChar(APIRequestText));
 
+  xmlRequestModified = xmlRequest;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void loop() {
-  Serial.print("~");
-  unsigned long currentTime = millis();
-  Serial.print(currentTime);
-  Serial.print(" - ");
-  Serial.print(lastUpdateTime);
-  Serial.print(" = ");
-  Serial.print(currentTime - lastUpdateTime);
-  Serial.print(" (");
-  Serial.print(current_date->minute.toInt());
-  Serial.println(")");
-  delay(100);
-
-  if (digitalRead(BUTTON_DOWN) == LOW && !boutton_clicked) {
-    bouton_click_handler("BUTTON_DOWN");
+  Serial.println("Before hour request");
+  if (WiFi.status() == WL_CONNECTED) {  //if we are connected to network
+    counter = 0;                        //reset counter
+    Serial.println("Wifi is still connected with IP: ");
+    Serial.println(WiFi.localIP());            //inform user about his IP address
+  } else if (WiFi.status() != WL_CONNECTED) {  //if we lost connection, retry
+    WiFi.begin(ssid);
   }
-
-  if (digitalRead(BUTTON_UP) == LOW && !boutton_clicked) {
-    bouton_click_handler("BUTTON_UP");
-  }
-
-  if (digitalRead(BUTTON_SCROLL_UP) == LOW && !boutton_clicked) {
-    bouton_click_handler("BUTTON_SCROLL_UP");
-  }
-
-  if (digitalRead(BUTTON_SCROLL_DOWN) == LOW && !boutton_clicked) {
-    bouton_click_handler("BUTTON_SCROLL_DOWN");
-  }
-
-  if (digitalRead(BUTTON_SCROLL_CLICK) == LOW && !boutton_clicked) {
-    bouton_click_handler("BUTTON_SCROLL_CLICK");
-  }
-
-  //  Serial.print("WWW: ");
-  //  Serial.println(current_date->hour.toInt());
-
-  if ((current_date->hour.toInt() + addHour >= MIN_HOUR_REFRESH && current_date->hour.toInt() + addHour <= MAX_HOUR_REFRESH && currentTime - lastUpdateTime >= 60000 * autoRefreshMinutes) || manualRefresh || firstLaunch) {
-    addHour = 0;
-    lastUpdateTime = currentTime;
-    Update_Display(resetString); //Refresh partial replace (replacing all writing area with space)
-
-    firstLaunch = false;
-
-    Update_Display(replaceAccentChar(APIRequestText));
-
-    xmlRequestModified = xmlRequest;
-
-
-
-
-
-
-
-
-
-    Serial.println("Before hour request");
-    if (WiFi.status() == WL_CONNECTED) {  //if we are connected to Eduroam network
-      counter = 0;                        //reset counter
-      Serial.println("Wifi is still connected with IP: ");
-      Serial.println(WiFi.localIP());            //inform user about his IP address
-    } else if (WiFi.status() != WL_CONNECTED) {  //if we lost connection, retry
-      WiFi.begin(ssid);
+  while (WiFi.status() != WL_CONNECTED) {  //during lost connection, print dots
+    delay(500);
+    Serial.print(".");
+    counter++;
+    if (counter >= 60) {  //30 seconds timeout - reset board
+      ESP.restart();
     }
-    while (WiFi.status() != WL_CONNECTED) {  //during lost connection, print dots
-      delay(500);
-      Serial.print(".");
-      counter++;
-      if (counter >= 60) {  //30 seconds timeout - reset board
-        ESP.restart();
-      }
+  }
+  Serial.println("Connecting to NTP server: ");
+
+  refreshDateTime(current_date);
+
+  String dateString = "" + current_date->year + "-" + current_date->month + "-" + current_date->day;
+  String hourString = String(current_date->hour.toInt() - 2 >= 0 ? current_date->hour.toInt() - 2 : current_date->hour.toInt());
+  String dateTimeString = dateString + "T" + (hourString.length() == 1 ? "0" + hourString : hourString) + ":" + current_date->minute + ":" + current_date->second;
+
+  Serial.println("After hour request");
+  Serial.println("After hour request");
+  Serial.println("After hour request");
+  Serial.println(dateTimeString);
+  Serial.println("After hour request");
+  Serial.println("After hour request");
+  Serial.println("After hour request");
+
+  xmlRequestModified.replace("{start}", dateForTestingDevelopment ? dateForTestingStart : dateTimeString); // Replace the {start} with the current datetime
+  xmlRequestModified.replace("{end}", dateForTestingDevelopment ? dateForTestingEnd : dateString); // Replace the {end} with the current date
+
+  Serial.println("xmlRequestModified");
+  Serial.println("xmlRequestModified");
+  Serial.println("xmlRequestModified");
+  Serial.println(xmlRequestModified);
+  Serial.println("xmlRequestModified");
+  Serial.println("xmlRequestModified");
+  Serial.println("xmlRequestModified");
+
+  Serial.print("Connecting to website: ");
+  Serial.println(API_SERVICE_ENDPOINT);
+
+  Serial.println("Before API request");
+  HTTPClient https2;
+  https2.begin(API_SERVICE_ENDPOINT);
+  https2.addHeader("Content-Type", "text/xml");
+  https2.setAuthorization(API_USERNAME, API_PASSWORD);
+  int httpResponseCode2 = https2.POST(xmlRequestModified);
+  Serial.println("After API request");
+  Serial.println("Another API request !!");
+
+  if (httpResponseCode2 == 200) {
+    Serial.println("API request Success");
+    String body = https2.getString();
+    Serial.println("Another API response !!");
+    Serial.println(body);
+    APIText = body;
+    response = body;
+    int itemsLength = 0;
+    String* items = XMLParser(body, "<t:Items>", "</t:Items>", itemsLength);
+    int calendarItemLength = 0;
+    String* calendarItem = XMLParser(items[0], "<t:CalendarItem>", "</t:CalendarItem>", calendarItemLength);
+    Event *eventList[calendarItemLength];
+    for (int i = 0; i < calendarItemLength; i++) {
+      eventList[i] = new Event(
+        replaceAccentChar(XMLGetter(calendarItem[i], "<t:Subject>", "</t:Subject>")),
+        DateTime(XMLGetter(calendarItem[i], "<t:Start>", "</t:Start>")),
+        DateTime(XMLGetter(calendarItem[i], "<t:End>", "</t:End>"))
+      );
     }
-    Serial.println("Connecting to NTP server: ");
 
-
-    refreshDateTime(current_date);
-
-
-    String dateString = "" + current_date->year + "-" + current_date->month + "-" + current_date->day;
-    String hourString = String(current_date->hour.toInt() - 2 >= 0 ? current_date->hour.toInt() - 2 : current_date->hour.toInt());
-    String dateTimeString = dateString + "T" + (hourString.length() == 1 ? "0" + hourString : hourString) + ":" + current_date->minute + ":" + current_date->second;
-
-    Serial.println("After hour request");
-    Serial.println("After hour request");
-    Serial.println("After hour request");
-    Serial.println(dateTimeString);
-    Serial.println("After hour request");
-    Serial.println("After hour request");
-    Serial.println("After hour request");
-
-    xmlRequestModified.replace("{start}", dateForTestingDevelopment ? dateForTestingStart : dateTimeString); // Replace the {start} with the current datetime
-    xmlRequestModified.replace("{end}", dateForTestingDevelopment ? dateForTestingEnd : dateString); // Replace the {end} with the current date
-
-    Serial.println("xmlRequestModified");
-    Serial.println("xmlRequestModified");
-    Serial.println("xmlRequestModified");
-    Serial.println(xmlRequestModified);
-    Serial.println("xmlRequestModified");
-    Serial.println("xmlRequestModified");
-    Serial.println("xmlRequestModified");
-
-    Serial.print("Connecting to website: ");
-    Serial.println(API_SERVICE_ENDPOINT);
-
-    Serial.println("Before API request");
-    HTTPClient https;
-    https.begin(API_SERVICE_ENDPOINT);
-    https.addHeader("Content-Type", "text/xml");
-    https.setAuthorization(API_USERNAME, API_PASSWORD);
-    int httpResponseCode = https.POST(xmlRequestModified);
-    Serial.println("After API request");
-    Serial.println("Another API request !!");
-
-    if (httpResponseCode == 200) {
-      Serial.println("API request Success");
-      String body = https.getString();
-      Serial.println("Another API response !!");
-      Serial.println(body);
-      APIText = body;
-      response = body;
-      int itemsLength = 0;
-      String* items = XMLParser(body, "<t:Items>", "</t:Items>", itemsLength);
-      int calendarItemLength = 0;
-      String* calendarItem = XMLParser(items[0], "<t:CalendarItem>", "</t:CalendarItem>", calendarItemLength);
-      Event *eventList[calendarItemLength];
-      for (int i = 0; i < calendarItemLength; i++) {
-        eventList[i] = new Event(
-          replaceAccentChar(XMLGetter(calendarItem[i], "<t:Subject>", "</t:Subject>")),
-          DateTime(XMLGetter(calendarItem[i], "<t:Start>", "</t:Start>")),
-          DateTime(XMLGetter(calendarItem[i], "<t:End>", "</t:End>"))
-        );
-      }
-
-      if (calendarItemLength != 0) {
-        bool isCurrent = isCurrentEvent(eventList[0], current_date);
-        String prefix = isCurrent ? "current : " : "next : ";
-        if (calendarItemLength == 1) {
-          APIText = prefixString + String((eventList[0]->startDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[0]->startDateTime).hour.toInt() + 2) : (eventList[0]->startDateTime).hour.toInt() + 2) + ":" + (eventList[0]->startDateTime).minute + "-" + ((eventList[0]->endDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[0]->endDateTime).hour.toInt() + 2) : (eventList[0]->endDateTime).hour.toInt() + 2) + ":" + (eventList[0]->endDateTime).minute + " " + eventList[0]->subject;
-        }
-        else {
-          APIText = "";
-          for (int i = 0; i < calendarItemLength; i++) {
-            String separator_string = i == 0 ? prefixString : separator;
-            String res = separator_string + ((eventList[i]->startDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[i]->startDateTime).hour.toInt() + 2) : (eventList[i]->startDateTime).hour.toInt() + 2) + ":" + (eventList[i]->startDateTime).minute + "-" + ((eventList[i]->endDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[i]->endDateTime).hour.toInt() + 2) : (eventList[i]->endDateTime).hour.toInt() + 2) + ":" + (eventList[i]->endDateTime).minute + " " + eventList[i]->subject;
-            APIText += res;
-          }
-        }
+    if (calendarItemLength != 0) {
+      bool isCurrent = isCurrentEvent(eventList[0], current_date);
+      String prefix = isCurrent ? "current : " : "next : ";
+      if (calendarItemLength == 1) {
+        APIText = prefixString + String((eventList[0]->startDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[0]->startDateTime).hour.toInt() + 2) : (eventList[0]->startDateTime).hour.toInt() + 2) + ":" + (eventList[0]->startDateTime).minute + "-" + ((eventList[0]->endDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[0]->endDateTime).hour.toInt() + 2) : (eventList[0]->endDateTime).hour.toInt() + 2) + ":" + (eventList[0]->endDateTime).minute + " " + eventList[0]->subject;
       }
       else {
-        APIText = replaceAccentChar(noEventText);
+        APIText = "";
+        for (int i = 0; i < calendarItemLength; i++) {
+          String separator_string = i == 0 ? prefixString : separator;
+          String res = separator_string + ((eventList[i]->startDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[i]->startDateTime).hour.toInt() + 2) : (eventList[i]->startDateTime).hour.toInt() + 2) + ":" + (eventList[i]->startDateTime).minute + "-" + ((eventList[i]->endDateTime).hour.toInt() + 2 < 10 ? "0" + String((eventList[i]->endDateTime).hour.toInt() + 2) : (eventList[i]->endDateTime).hour.toInt() + 2) + ":" + (eventList[i]->endDateTime).minute + " " + eventList[i]->subject;
+          APIText += res;
+        }
       }
     }
     else {
-      Serial.print("Err: ");
-      Serial.println(httpResponseCode);
-      APIText = "Error check Serial";
-      response = "Error check Serial";
+      APIText = replaceAccentChar(noEventText);
     }
-
-
-    Serial.println("Another APIText !!");
-    Serial.println(APIText);
-
-    Update_Display(resetString); //Refresh partial replace (replacing all writing area with space)
-    Update_Display(APIText);
-
-    refreshDateTime(before_refresh_date);
-    manualRefresh = false;
   }
-  else{
-    addHour = floor((currentTime - lastUpdateTime) / (60 * 60000));
+  else {
+    Serial.print("Err: ");
+    Serial.println(httpResponseCode2);
+    APIText = "Error check Serial";
+    response = "Error check Serial";
   }
+
+  Serial.println("Another APIText !!");
+  Serial.println(APIText);
+
+  Update_Display(resetString); //Refresh partial replace (replacing all writing area with space)
+  Update_Display(APIText);
+
+  refreshDateTime(before_refresh_date);
+
+  int currentH = current_date->hour.toInt();
+  int currentM = current_date->minute.toInt();
+  int currentS = current_date->second.toInt();
+
+  uint64_t sleepUS = 0;
+
+  // From 7h00 am to 10h00 pm
+  if (currentH >= MIN_HOUR_REFRESH && currentH < MAX_HOUR_REFRESH) {
+      // Sleep for 15 minutes
+      sleepUS = (uint64_t)autoRefreshMinutes * 60ULL * 1000000ULL;
+      Serial.printf("Day : Deep Sleep for %d minutes...\n", autoRefreshMinutes);
+  }
+  // From 10h00 pm to 7h00 am
+  else {
+      int hoursToWait = 0;
+
+      // If we are before midnight
+      if (currentH >= MAX_HOUR_REFRESH) {
+          hoursToWait = (24 - currentH) + MIN_HOUR_REFRESH - 1;
+      }
+      // If we are after midnight
+      else {
+          hoursToWait = MIN_HOUR_REFRESH - currentH - 1;
+      }
+
+      int minutesToWait = 59 - currentM;
+      int secondsToWait = 60 - currentS;
+
+      uint64_t secondsTotal = (hoursToWait * 3600ULL) + (minutesToWait * 60ULL) + secondsToWait;
+      sleepUS = secondsTotal * 1000000ULL;
+
+      Serial.printf("Night : The screen sleep til %dh00 (%llu secondes of sleep).\n", MIN_HOUR_REFRESH, secondsTotal);
+  }
+
+  // Configurer le minuteur de réveil
+  esp_sleep_enable_timer_wakeup(sleepUS);
+
+  Serial.println(">>> DEEP SLEEP <<<");
+  Serial.flush();
+  esp_deep_sleep_start();
+}
+
+void loop(){
+
 }

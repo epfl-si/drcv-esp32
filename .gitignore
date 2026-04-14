@@ -3,3 +3,4 @@ secrets.h
 node_modules/
 pnpm-lock.yaml
 .env
+build/
