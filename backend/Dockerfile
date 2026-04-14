@@ -28,7 +28,9 @@ RUN rm -rf /root/.cache/arduino
 
 WORKDIR /app
 
-COPY . .
+COPY backend/ /app
+COPY CrowPanel/ /app/CrowPanel/
+COPY src/ /app/src/
 
 RUN npm install express cors
 
