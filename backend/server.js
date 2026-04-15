@@ -60,6 +60,18 @@ app.get('/build', (req, res) => {
   });
 });
 
+app.get('/firmware', (req, res) => {
+  console.log("Récupèration du binaire");
+  const binPath = path.join(BUILD_DIR, 'CrowPanel.ino.bin');
+  if (fs.existsSync(binPath)) {
+    console.log("Binaire trouvé, envoi du binaire.");
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.sendFile(binPath);
+  } else {
+    res.status(500).send("Fichier binaire non trouvé");
+  }
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Backend prêt sur le port ${PORT}`);
   console.log(`Dossier de build surveillé : ${BUILD_DIR}`);

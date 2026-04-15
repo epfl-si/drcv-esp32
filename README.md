@@ -56,6 +56,14 @@ git clone git@github.com:epfl-si/drcv-esp32.git
 >
 > Si vous n'avez pas l'utilitaire de commande **git**, vous pouvez également, en suivant les étapes précédente, cliquer sur **Download ZIP** puis l'extraire.
 
+### Variable d'environnement
+Vous trouverez un fichier `.env.example` dans le dossier `./frontend`. Renommer le en `.env` et entrer l'url du backend.
+
+### Conteneur Docker
+En vous positionnant à la racine du projet `drcv-esp32`, lancez la commande `docker compose up -d`. Cela risque de prendre quelques minutes.
+
+> Une fois les conteneurs créés, rendez-vous à l'adresse `http://localhost:8080`.
+
 ### 💿 Installation de l'IDE Arduino
 
 | Système d'exploitation (OS) | Téléchargement |

@@ -8,6 +8,11 @@ services:
     ports:
       - "3000:3000"
     container_name: tpi-backend
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - ./CrowPanel:/app/CrowPanel
+      - ./src:/app/src
 
   frontend:
     build:

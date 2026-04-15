@@ -17,22 +17,24 @@ export default function InstallerPage() {
   const [isReady, setIsReady] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
 
-  const handlePrepareFlash = () => {
+  const handlePrepareFlash = async() => {
     if (!room) return;
 
     setIsReady(true);
 
-    const firmwareUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/build?room=${encodeURIComponent(room)}`;
+    await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/build?room=${encodeURIComponent(room)}`
+    );
 
     const manifest = {
       name: `CrowPanel - ${room}`,
       builds: [{
         chipFamily: "ESP32-S3",
         parts: [
+          { path: `${process.env.NEXT_PUBLIC_BACKEND_URL}/firmware`, offset: 0x10000 },
           { path: `${process.env.NEXT_PUBLIC_BACKEND_URL}/bootloader`, offset: 0x0 },
           { path: `${process.env.NEXT_PUBLIC_BACKEND_URL}/partitions`, offset: 0x8000 },
-          { path: `${process.env.NEXT_PUBLIC_BACKEND_URL}/boot_app`, offset: 0xE000 },
-          { path: firmwareUrl, offset: 0x10000 }
+          { path: `${process.env.NEXT_PUBLIC_BACKEND_URL}/boot_app`, offset: 0xE000 }
         ]
       }]
     };
