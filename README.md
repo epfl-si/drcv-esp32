@@ -1,111 +1,115 @@
 # Summary
 
-<!-- Put after theses lines, ctrl + shift + p and write "Markdown" and click to "Markdwon all ine one" extension -->
-<!-- TOC -->
-<!-- TOC END -->
 - [Summary](#summary)
-- [❓ Quel est ce projet](#-quel-est-ce-projet)
-- [🤔 Comment utiliser ce projet](#-comment-utiliser-ce-projet)
-  - [⚙️ Configuration](#️-configuration)
-    - [🛠️ Prérequis](#️-prérequis)
-    - [📀 Installation du projet](#-installation-du-projet)
-    - [💿 Installation de l'IDE Arduino](#-installation-de-lide-arduino)
-    - [🤖 Configuration du Board Manager (gestionnaire de cartes)](#-configuration-du-board-manager-gestionnaire-de-cartes)
-    - [📚 Libraries](#-libraries)
-    - [🔑 Gestion des secrets](#-gestion-des-secrets)
-  - [📁 Projet sur différent écran](#-projet-sur-différent-écran)
-- [📙 Annexes](#-annexes)
-  - [🧩 Classes et fonctions créées pour ce projet](#-classes-et-fonctions-créées-pour-ce-projet)
-  - [❓ FAQ](#-faq)
-    - [Comment modifier la langue de texte ?](#comment-modifier-la-langue-de-texte-)
-  - [⛓️ Liens utiles](#️-liens-utiles)
+- [What is this project](#what-is-this-project)
+- [How to use this project](#how-to-use-this-project)
+  - [Configuration](#configuration)
+    - [Prerequisites](#prerequisites)
+    - [Project Installation](#project-installation)
+    - [Arduino IDE Installation](#arduino-ide-installation)
+    - [Board Manager Configuration](#board-manager-configuration)
+    - [Libraries](#libraries)
+    - [Secrets Management](#secrets-management)
+  - [Project on different screens](#project-on-different-screens)
+- [Appendices](#appendices)
+  - [Classes and functions created for this project](#classes-and-functions-created-for-this-project)
+  - [FAQ](#faq)
+    - [How to change the text language?](#how-to-change-the-text-language)
+  - [Useful links](#useful-links)
 
 
-# ❓ Quel est ce projet
+# What is this project
 
-Le projet DRCV, autrement dit "Dsi Room Calendar View" est un mini projet ayant pour but d'afficher sur un écran E-ink les réservations actuelles et à venir de nos salles de conférence.
+The DRCV project, also known as "Dsi Room Calendar View", is a mini-project aimed at displaying current and upcoming conference room reservations on an E-ink screen.
 
-# 🤔 Comment utiliser ce projet
+# How to use this project
 
-La partie configuration du projet a une partie commune avec des prérequis globaux. Cette section de la documentation concerne donc les points et choses à avoir absolument peu importe l'écran
+The configuration part of the project has a common section with global prerequisites. This section of the documentation therefore concerns the points and things to have absolutely regardless of the screen used.
 
-## ⚙️ Configuration
+## Configuration
 
-### 🛠️ Prérequis
+### Prerequisites
 
-Pour utiliser ce projet, il vous faudra tout d'abord :
-- Un des écrans cités à la section [📁 Projet sur différent écran](#-projet-sur-différent-écran)
-- Arduino IDE dans la version la plus récente [💿 Installation de l'IDE Arduino](#-installation-de-lide-arduino)
-- Un compte pour le programme, qui a accès aux réservations de la salle souhaitée.
+To use this project, you will first need:
+- One of the screens mentioned in the section [Project on different screens](#project-on-different-screens)
+- The most recent version of Arduino IDE [Arduino IDE Installation](#arduino-ide-installation)
+- An account for the program that has access to the reservations of the desired room.
 
-### 📀 Installation du projet
+### Project Installation
 
-Cloner le repo sur lequel vous êtes actuellement avec la commande suivate :
+Clone the repository you are currently on with the following command:
 ```bash
 git clone https://github.com/epfl-si/drcv-esp32.git
 ```
 
-ou
+or
 
 ```bash
 git clone git@github.com:epfl-si/drcv-esp32.git
 ```
 
 > [!NOTE]
-> Vous pouvez depuis le [repository Github](https://github.com/epfl-si/drcv-esp32), cliquer sur le bouton vert avec inscris **Code**. Une interface s'ouvrira vous proposant, dans l'onglet **local**, plusieurs paramètres (https, ssh et Github CLI) afin de télécharger le repository sur votre appareil.
+> From the [Github repository](https://github.com/epfl-si/drcv-esp32), you can click on the green button labeled **Code**. An interface will open offering several parameters in the **local** tab (https, ssh, and Github CLI) to download the repository to your device.
 >
-> Si vous n'avez pas l'utilitaire de commande **git**, vous pouvez également, en suivant les étapes précédente, cliquer sur **Download ZIP** puis l'extraire.
+> If you do not have the **git** command-line utility, you can also click on **Download ZIP** and then extract it.
 
-### Variable d'environnement
-Vous trouverez un fichier `.env.example` dans le dossier `./frontend`. Renommer le en `.env` et entrer l'url du backend.
+### Environment Variable
+You will find a `.env.example` file in the `./frontend` folder. Rename it to `.env` and enter the backend URL.
 
-### Conteneur Docker
-En vous positionnant à la racine du projet `drcv-esp32`, lancez la commande `docker compose up -d`. Cela risque de prendre quelques minutes.
+### Secrets
+You will find a `.secrets.h.example` file in the `./src` folder. Rename it to `.secrets.h` and enter the informations.
 
-> Une fois les conteneurs créés, rendez-vous à l'adresse `http://localhost:8080`.
+> The informations are available in keybase at the path `epfl_sopec/drcv-esp32`.
 
-### 💿 Installation de l'IDE Arduino
+### Docker Container
+While positioned at the root of the `drcv-esp32` project, run the command `docker compose up -d`. This may take a few minutes.
 
-| Système d'exploitation (OS) | Téléchargement |
+Once the containers are created, go to the address `http://localhost:8080`.
+
+> Note that you must open the page in a Chromium-based browser (Brave, Chrome, Edge, Opera, etc.) for the program to function correctly.
+
+### Arduino IDE Installation
+
+| Operating System (OS) | Download |
 | :--: | :-- |
-| Windows | Depuis le site web officiel sur [https://www.arduino.cc/en/software/](https://www.arduino.cc/en/software/). |
-| MAC | Depuis le site web officiel sur [https://www.arduino.cc/en/software/](https://www.arduino.cc/en/software/). |
-| Linux | Je recommande d'installer la version **Arduino IDE v2** avec `flatpak` ou d'installer l'AppImage ou le zip que l'on peut récupérer depuis le site officiel sur [https://www.arduino.cc/en/software/](https://www.arduino.cc/en/software/). Je déconseille la version `snap` n'était pas à jour et causait donc de nombreux problèmes. |
+| Windows | From the official website at [https://www.arduino.cc/en/software/](https://www.arduino.cc/en/software/). |
+| MAC | From the official website at [https://www.arduino.cc/en/software/](https://www.arduino.cc/en/software/). |
+| Linux | I recommend installing the **Arduino IDE v2** version with `flatpak` or installing the AppImage or zip file available from the official website at [https://www.arduino.cc/en/software/](https://www.arduino.cc/en/software/). I advise against the `snap` version as it was not up to date and caused many problems. |
 
-### 🤖 Configuration du Board Manager (gestionnaire de cartes)
+### Board Manager Configuration
 
-1. Lancer Arduino
-2. Dirigez-vous sur `Files > Preferencies` (en français => `Fichier > Préférences`)
-3. Tout à droite du champ "URL de gestionnaire de cartes supplémentaires", cliquez sur le bouton bleu avec deux carrés
-4. Ajoutez cette ligne : [https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json](https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json)
-5. Ensuite, allez dans `Tools > Board > Boards Manager` (en français => `Outils > Carte > Gestionnaire de Cartes`)
-6. Tapez "esp32"
-7. Installer la version la plus récente du gestionnaire de cartes **esp32**, par **Espressif Systems**
+1. Launch Arduino
+2. Go to `Files > Preferences`
+3. On the far right of the "Additional Boards Manager URLs" field, click the blue button with two squares
+4. Add this line: [https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json](https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json)
+5. Then, go to `Tools > Board > Boards Manager`
+6. Type "esp32"
+7. Install the most recent version of the **esp32** board manager by **Espressif Systems**
 
-### 📚 Libraries
+### Libraries
 
-Différentes librairies sont à installer afin que le projet puisse fonctionner. Certaines libraries sont communes et sont donc référé ici, d'autres sont exclusives à l'écran et seront donc expliqués dans la section **📚 Libraries** du README.md de leur dossier respectif.
-
-> [!NOTE]
-> S'ils n'ont pas besoin de librairies supplémentaires, la section **📚 Libraries** sera manquante au README.md.
-
-Voici donc la liste des libraires à installer qui sont communes à tous les écrans :
-- `ArduinoHttpClient` par **Arduino** (Utilisé afin d'effectuer les requêtes HTTP vers l'API SOAP EWS)
-- `Base64` par **Xander Electronics** (Utilisé afin de convertir en base 64 le nom d'utilisateur et le mot de passe du compte de service, et le mettre dans les requête HTTP)
+Various libraries need to be installed for the project to work. Some libraries are common and are referred to here; others are screen-specific and will be explained in the **Libraries** section of the README.md in their respective folders.
 
 > [!NOTE]
-> Certaines méthodes comme le `XMLParser` ou encore le `Split` sont handmade.
-> Les différentes documentations de ceux-ci sont référé dans la section [🧩 Classes et fonctions créées pour ce projet](#-classes-et-fonctions-créées-pour-ce-projet)
+> If they do not require additional libraries, the **Libraries** section will be missing from their README.md.
 
-### 🔑 Gestion des secrets
+Here is the list of common libraries to install for all screens:
+- `ArduinoHttpClient` by **Arduino** (Used to perform HTTP requests to the EWS SOAP API)
+- `Base64` by **Xander Electronics** (Used to convert the service account username and password to base64 and include them in HTTP requests)
 
-1. Aller dans le dossier `src`
-2. Dupliquer le fichier `secrets.h.example` et renommez-le `secrets.h`
-3. Ajoutez les valeurs nécessaires (nom d'utilisateurs, mot de passe, etc..)
+> [!NOTE]
+> Some methods like the `XMLParser` or the `Split` are handmade.
+> Documentation for these is referred to in the section [Classes and functions created for this project](#classes-and-functions-created-for-this-project)
+
+### Secrets Management
+
+1. Go to the `src` folder
+2. Duplicate the `secrets.h.example` file and rename it `secrets.h`
+3. Add the necessary values (usernames, password, etc.)
    > [!WARNING]
-   > Prennez garde à ne pas modifier les valeurs déjà existante.
+   > Be careful not to modify existing values.
 
-## 📁 Projet sur différent écran
+## Project on different screens
 
 - [CrowPanel ESP32 4.2" E-paper](./CrowPanel/)
 
@@ -113,24 +117,24 @@ Voici donc la liste des libraires à installer qui sont communes à tous les éc
 
 - [Seeed Studio XIAO 7.5" Epaper](./SeeedStudio7.5Epaper/)
 
-# 📙 Annexes
+# Appendices
 
-## 🧩 Classes et fonctions créées pour ce projet
+## Classes and functions created for this project
 
-- Fonction [Split](./src/split/)
+- Function [Split](./src/split/)
 
-- Classe [DateTime](./src/datetime/)
+- Class [DateTime](./src/datetime/)
 
-- Classe [Event](./src/event/)
+- Class [Event](./src/event/)
 
 - Function [XML_Parser](./src/xml_parser/)
 
-## ❓ FAQ
+## FAQ
 
-### Comment modifier la langue de texte ?
+### How to change the text language?
 
-La prise en charge du multi langue n'est pas disponible, cependant, l'intégralité des textes affichés sur l'écran (hors valeurs décimales), sont editables dans le fichier `variables.h`
+Multi-language support is not available; however, all text displayed on the screen (excluding decimal values) is editable in the `variables.h` file.
 
-## ⛓️ Liens utiles
+## Useful links
 
-- [Convertisseur d'image en image arduino (Bitmap)](https://javl.github.io/image2cpp/)
+- [Arduino image converter (Bitmap)](https://javl.github.io/image2cpp/)
