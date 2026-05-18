@@ -1,0 +1,152 @@
+services:
+  ews-api:
+    build:
+      context: .
+      dockerfile: ews-api/Dockerfile
+    ports:
+      - "5000:5000"
+    container_name: "ews-api"
+    volumes:
+      - ./src:/app/src
+    networks:
+      - tpi-network
+
+  init-certificates:
+    image: ghcr.io/usetrmnl/terminus:latest
+    user: root
+    environment:
+      CERTIFICATE_URLS: ${CERTIFICATE_URLS:-}
+    volumes:
+      - terminus_certificates:/etc/ssl/certs
+    entrypoint: ["/bin/bash", "-c"]
+    command: scripts/docker/install-certificates
+    restart: "no"
+
+  web:
+    init: true
+    image: ghcr.io/usetrmnl/terminus:latest
+    container_name: terminus-web
+    environment:
+      TZ: Europe/Zurich
+      HANAMI_PORT: ${HANAMI_PORT}
+      API_URI: ${API_URI}
+      APP_SECRET: ${APP_SECRET}
+      APP_SETUP: "true"
+      DATABASE_URL: postgres://${DATABASE_USER}:${DATABASE_PASSWORD}@database:${DATABASE_PORT}/${DATABASE_NAME}
+      KEYVALUE_URL: redis://:${KEYVALUE_PASSWORD}@keyvalue:${KEYVALUE_PORT}/${KEYVALUE_DATABASE}
+    restart: unless-stopped
+    ports:
+      - "${HANAMI_PORT}:${HANAMI_PORT}"
+    volumes:
+      - terminus_certificates:/etc/ssl/certs
+      - terminus_web-uploads:/app/public/uploads
+    depends_on:
+      init-certificates:
+        condition: service_completed_successfully
+      database:
+        condition: service_healthy
+      keyvalue:
+        condition: service_healthy
+    networks:
+      - tpi-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:${HANAMI_PORT}/up"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+
+  worker:
+    init: true
+    image: ghcr.io/usetrmnl/terminus:latest
+    container_name: terminus-worker
+    environment:
+      TZ: Europe/Zurich
+      HANAMI_PORT: ${HANAMI_PORT}
+      API_URI: ${API_URI}
+      APP_SECRET: ${APP_SECRET}
+      DATABASE_URL: postgres://${DATABASE_USER}:${DATABASE_PASSWORD}@database:${DATABASE_PORT}/${DATABASE_NAME}
+      KEYVALUE_URL: redis://:${KEYVALUE_PASSWORD}@keyvalue:${KEYVALUE_PORT}/${KEYVALUE_DATABASE}
+    command: bundle exec sidekiq -r ./config/sidekiq.rb
+    restart: unless-stopped
+    volumes:
+      - terminus_certificates:/etc/ssl/certs
+      - terminus_web-uploads:/app/public/uploads
+    depends_on:
+      web:
+        condition: service_healthy
+    networks:
+      - tpi-network
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "sidekiq"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+
+  database:
+    image: postgres:18.3-alpine
+    container_name: ${DATABASE_HOST}
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    ports:
+      - "${DATABASE_PORT}:${DATABASE_PORT}"
+    volumes:
+      - terminus_database-data:/var/lib/postgresql
+    command: -p ${DATABASE_PORT}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready --username ${DATABASE_USER} --dbname ${DATABASE_NAME} --port ${DATABASE_PORT}"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - tpi-network
+
+  keyvalue:
+    image: valkey/valkey:9-alpine
+    container_name: terminus-keyvalue
+    ports:
+      - "${KEYVALUE_PORT}:${KEYVALUE_PORT}"
+    command: >
+      valkey-server
+      --requirepass ${KEYVALUE_PASSWORD}
+      --maxmemory 512mb
+      --maxmemory-policy noeviction
+      --port ${KEYVALUE_PORT}
+    restart: unless-stopped
+    volumes:
+      - terminus_keyvalue-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -p ${KEYVALUE_PORT} ping || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - tpi-network
+
+  caddy:
+    image: caddy:alpine
+    container_name: terminus-proxy
+    restart: unless-stopped
+    ports:
+      - "443:443"
+      - "80:80"
+    command: caddy reverse-proxy --from https://terminus.fsd.epfl.ch --to http://terminus-web:${HANAMI_PORT} --internal-certs
+    depends_on:
+      web:
+        condition: service_healthy
+    networks:
+      - tpi-network
+
+volumes:
+  terminus_database-data:
+  terminus_keyvalue-data:
+  terminus_web-uploads:
+  terminus_certificates:
+
+networks:
+  tpi-network:
+    driver: bridge
