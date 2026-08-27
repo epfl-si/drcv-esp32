@@ -178,7 +178,7 @@ docker compose up -d --build
     
       <div style="width: 50vw; height: 100vh; border-right: 3px solid black; box-sizing: border-box; display: flex; flex-direction: column; position: relative;">
         
-        <div style="padding: 15px; flex-grow: 1; box-sizing: border-box; overflow: hidden; column-width: 100vw; margin-bottom: 110px;">
+        <div style="padding: 15px; flex-grow: 1; box-sizing: border-box; overflow: hidden; margin-bottom: 110px;">
           {% assign main_room = source_1.rooms[0] %}
           
           <div style="width: 100%; height: 60px; background-color: black; color: white; display: flex; align-items: center; padding-left: 15px; margin-bottom: 20px; break-inside: avoid;">
@@ -206,11 +206,10 @@ docker compose up -d --build
           {% for cours in main_room.events %}
             {% if cours.end > current_time %}
               {% assign has_upcoming_1 = true %}
-              <div style="margin-bottom: 12px; width: 100%; break-inside: avoid;">
-                <div style="font-size: 22px; display: flex; align-items: flex-start; line-height: 1.2;">
-                  <span style="margin-right: 10px; font-weight: bold;">&gt;</span>
-                  <div>{{ cours.start }}-{{ cours.end }} <span style="margin-left:15px;">{{ cours.title }}</span></div>
-                </div>
+              <div style="margin-bottom: 12px; font-size: 22px; line-height: 1.2; padding-left: 25px; text-indent: -25px; break-inside: avoid;">
+                <span style="font-weight: bold; margin-right: 5px;">&gt;</span>
+                <span style="white-space: nowrap; margin-right: 8px;">{{ cours.start }}-{{ cours.end }}</span>
+                <span style="word-wrap: break-word;">{{ cours.title }}</span>
               </div>
             {% endif %}
           {% endfor %}
@@ -224,12 +223,30 @@ docker compose up -d --build
             last refresh: {{ time_seconds | date: "%H:%M:%S" }}
           </div>
         </div>
+    
+        <div style="position: absolute; bottom: 0; right: 0; border-top: solid 3px black; border-left: solid 3px black; display: flex; flex-direction: column; align-items: center; padding: 8px; background-color: white; width: max-content; box-sizing: border-box; z-index: 10;">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=85x85&data=https://terminus.fsd.epfl.ch/add-event?room={{ main_room.prefix_name | url_encode }}%26key={{ main_room.qr_token }}" 
+               style="width: 85px; height: 85px; border: 2px solid black; display: block; margin-bottom: 4px;" />
+          <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.02em; background-color: #000; color: #fff; padding: 1px 4px; text-align: center; width: 100%; box-sizing: border-box;">
+            Réserver
+          </div>
+        </div>
+    
       </div>
     
       <div style="width: 50vw; height: 100vh; display: flex; flex-direction: column;">
     
         {% assign room2 = source_1.rooms[1] %}
-        <div style="height: 50vh; border-bottom: 3px solid black; padding: 15px; box-sizing: border-box; overflow: hidden; column-width: 100vw;">
+        <div style="height: 50vh; border-bottom: 3px solid black; padding: 15px; box-sizing: border-box; overflow: hidden; display: block;">
+          <div style="float: right; width: 0; height: calc(100% - 90px);"></div>
+          <div style="float: right; clear: right; margin-right: -15px; margin-bottom: -15px; width: 90px; height: 105px; border-top: solid 3px black; border-left: solid 3px black; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: white; box-sizing: border-box; z-index: 10; position: relative;">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=85x85&data=https://terminus.fsd.epfl.ch/add-event?room={{ room2.prefix_name | url_encode }}%26key={{ room2.qr_token }}" 
+                 style="width: 70px; height: 70px; border: 2px solid black; display: block; margin-bottom: 4px;" />
+            <div style="font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.02em; background-color: #000; color: #fff; padding: 1px 4px; text-align: center; width: calc(100% - 10px); box-sizing: border-box;">
+            Réserver
+            </div>
+          </div>
+    
           <div style="background-color: black; color: white; padding: 5px 15px; display: inline-block; margin-bottom: 10px; break-inside: avoid;">
             <h2 style="margin: 0; font-size: 22px; font-weight: bolder;">{{ room2.room_name }}</h2>
           </div>
@@ -255,18 +272,27 @@ docker compose up -d --build
           {% for cours in room2.events %}
             {% if cours.end > current_time %}
               {% assign has_upcoming_2 = true %}
-              <div style="margin-bottom: 8px; width: 100%; break-inside: avoid;">
-                <div style="font-size: 18px; display: flex; align-items: flex-start; line-height: 1.2;">
-                  <span style="margin-right: 8px; font-weight: bold;">&gt;</span>
-                  <div>{{ cours.start }}-{{ cours.end }} <span style="margin-left:10px;">{{ cours.title }}</span></div>
-                </div>
+              <div style="margin-bottom: 8px; font-size: 18px; line-height: 1.2; padding-left: 22px; text-indent: -22px; break-inside: avoid;">
+                <span style="font-weight: bold; margin-right: 5px;">&gt;</span>
+                <span style="white-space: nowrap; margin-right: 5px;">{{ cours.start }}-{{ cours.end }}</span>
+                <span style="word-wrap: break-word;">{{ cours.title }}</span>
               </div>
             {% endif %}
           {% endfor %}
+          
         </div>
     
         {% assign room3 = source_1.rooms[2] %}
-        <div style="height: 50vh; padding: 15px; box-sizing: border-box; overflow: hidden; column-width: 100vw;">
+        <div style="height: 50vh; padding: 15px; box-sizing: border-box; overflow: hidden; display: block;">
+          <div style="float: right; width: 0; height: calc(100% - 90px);"></div>
+          <div style="float: right; clear: right; margin-right: -15px; margin-bottom: -15px; width: 90px; height: 105px; border-top: solid 3px black; border-left: solid 3px black; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: white; box-sizing: border-box; z-index: 10; position: relative;">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=85x85&data=https://terminus.fsd.epfl.ch/add-event?room={{ room3.prefix_name | url_encode }}%26key={{ room3.qr_token }}" 
+                 style="width: 70px; height: 70px; border: 2px solid black; display: block; margin-bottom: 4px;" />
+            <div style="font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.02em; background-color: #000; color: #fff; padding: 1px 4px; text-align: center; width: calc(100% - 10px); box-sizing: border-box;">
+            Réserver
+            </div>
+          </div>
+    
           <div style="background-color: black; color: white; padding: 5px 15px; display: inline-block; margin-bottom: 10px; break-inside: avoid;">
             <h2 style="margin: 0; font-size: 22px; font-weight: bolder;">{{ room3.room_name }}</h2>
           </div>
@@ -292,16 +318,18 @@ docker compose up -d --build
           {% for cours in room3.events %}
             {% if cours.end > current_time %}
               {% assign has_upcoming_3 = true %}
-              <div style="margin-bottom: 8px; width: 100%; break-inside: avoid;">
-                <div style="font-size: 18px; display: flex; align-items: flex-start; line-height: 1.2;">
-                  <span style="margin-right: 8px; font-weight: bold;">&gt;</span>
-                  <div>{{ cours.start }}-{{ cours.end }} <span style="margin-left:10px;">{{ cours.title }}</span></div>
-                </div>
+              <div style="margin-bottom: 8px; font-size: 18px; line-height: 1.2; padding-left: 22px; text-indent: -22px; break-inside: avoid;">
+                <span style="font-weight: bold; margin-right: 5px;">&gt;</span>
+                <span style="white-space: nowrap; margin-right: 5px;">{{ cours.start }}-{{ cours.end }}</span>
+                <span style="word-wrap: break-word;">{{ cours.title }}</span>
               </div>
             {% endif %}
           {% endfor %}
+          
         </div>
+    
       </div>
+    
     </div>
     ```
 5. Cliquez sur `Save`

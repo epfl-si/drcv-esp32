@@ -11,6 +11,14 @@ services:
     networks:
       - tpi-network
 
+  ews-frontend:
+    build: ./ews-frontend
+    container_name: ews-frontend
+    ports:
+      - "8080:80"
+    networks:
+      - tpi-network
+
   init-certificates:
     image: ghcr.io/usetrmnl/terminus:latest
     user: root
@@ -134,7 +142,29 @@ services:
     ports:
       - "443:443"
       - "80:80"
-    command: caddy reverse-proxy --from https://terminus.fsd.epfl.ch --to http://terminus-web:${HANAMI_PORT} --internal-certs
+    entrypoint:
+      - "sh"
+      - "-c"
+      - |
+        echo "terminus.fsd.epfl.ch {
+            tls internal
+
+            handle_path /add-event* {
+                reverse_proxy ews-frontend:80
+            }
+
+            handle /api/add-event* {
+                reverse_proxy ews-api:5000
+            }
+
+            handle /api/get-room-event* {
+                reverse_proxy ews-api:5000
+            }
+
+            handle {
+                reverse_proxy terminus-web:2300
+            }
+        }" > /etc/caddy/Caddyfile && caddy run --config /etc/caddy/Caddyfile
     depends_on:
       web:
         condition: service_healthy

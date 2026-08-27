@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réservation Instantanée</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; background: #f5f5f7; padding: 20px; display: flex; justify-content: center; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; max-width: 400px; box-sizing: border-box; }
+        h2 { margin-top: 0; font-size: 22px; border-bottom: 2px solid #f5f5f7; padding-bottom: 10px; }
+        label { display: block; margin: 15px 0 5px; font-weight: bold; font-size: 14px; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 16px; box-sizing: border-box; background: white; }
+        input[readonly] { background: #f5f5f7; color: #86868b; font-weight: bold; }
+        option:disabled { color: #86868b; }
+        button { width: 100%; padding: 14px; background: #0071e3; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 25px; cursor: pointer; transition: 0.2s; }
+        button:disabled { background: #86868b; cursor: not-allowed; }
+        .notice { color: #d93025; font-size: 13px; margin-top: 5px; font-weight: bold; }
+        .hint { font-size: 12px; color: #86868b; margin-top: 3px; }
+    </style>
+</head>
+<body>
+    <div class="card" id="app">
+        <h2 id="roomTitle">Chargement...</h2>
+        <form id="reserveForm">
+            <label>Heure de départ</label>
+            <input type="text" id="startTime" readonly value="Calcul en cours...">
+            <div id="ongoingNotice"></div>
+
+            <label for="duration">Durée de la séance</label>
+            <select id="duration" required>
+                </select>
+
+            <label for="subject">Sujet</label>
+            <input type="text" id="subject" value="Séance instantanée" required>
+
+            <label for="userEmail">E-mail (facultatif)</label>
+            <input type="email" id="userEmail" placeholder="jean.dupont@epfl.ch">
+            <div class="hint">Pour recevoir une invitation dans votre calendrier.</div>
+
+            <button type="submit" id="submitBtn" disabled>Initialisation...</button>
+        </form>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const roomName = params.get('room') || 'INN033';
+        const secretKey = params.get('key') || '';
+
+        document.getElementById('roomTitle').textContent = `Salle ${roomName.toUpperCase()}`;
+
+        const submitBtn = document.getElementById('submitBtn');
+        const startTimeInput = document.getElementById('startTime');
+        const durationSelect = document.getElementById('duration');
+        const ongoingNotice = document.getElementById('ongoingNotice');
+        const appDiv = document.getElementById('app');
+
+        async function initRoomData() {
+            try {
+                const response = await fetch(`/api/get-room-event?room=${encodeURIComponent(roomName)}&key=${encodeURIComponent(secretKey)}`);
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.error || "Erreur de validation");
+
+                const actualStart = new Date(data.actualStart);
+                startTimeInput.value = actualStart.toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zurich' });
+
+                if (data.ongoingEvent) {
+                    ongoingNotice.innerHTML = `<div class="notice">⏳ Réservation bloquée jusqu'à ${startTimeInput.value}</div>`;
+                }
+
+                durationSelect.innerHTML = '';
+                const standardDurations = [15, 30, 45, 60, 90, 120];
+                const maxMin = data.maxAvailableMinutes;
+
+                if (maxMin <= 0) {
+                    durationSelect.innerHTML = '<option disabled selected>Aucun créneau libre</option>';
+                    submitBtn.textContent = "Salle indisponible";
+                    return;
+                }
+
+                let optionsToRender = [...standardDurations];
+                if (maxMin < 120 && !optionsToRender.includes(maxMin)) {
+                    optionsToRender.push(maxMin);
+                    optionsToRender.sort((a, b) => a - b);
+                }
+
+                optionsToRender.forEach(val => {
+                    const opt = document.createElement('option');
+
+                    if (val === maxMin && maxMin < 120) {
+                        opt.value = "next";
+                        opt.textContent = `Jusqu'à la prochaine séance (≈ ${val} min)`;
+                    } else {
+                        opt.value = val;
+                        opt.textContent = `${val} min`;
+                    }
+
+                    if (val > maxMin) {
+                        opt.disabled = true;
+                    }
+
+                    durationSelect.appendChild(opt);
+                });
+
+                if (maxMin >= 60) {
+                    durationSelect.value = "60";
+                } else {
+                    durationSelect.value = "next";
+                }
+
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Créer la séance";
+
+            } catch (err) {
+                appDiv.innerHTML = `<h2 style="color: #d93025; text-align: center; border: none;">Accès refusé 🛑</h2><p style="text-align: center; font-weight: bold;">${err.message}</p>`;
+            }
+        }
+
+        initRoomData();
+
+        document.getElementById('reserveForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Création en cours...";
+
+            const payload = {
+                roomName: roomName,
+                duration: document.getElementById('duration').value,
+                subject: document.getElementById('subject').value,
+                userEmail: document.getElementById('userEmail').value,
+                key: secretKey
+            };
+
+            try {
+                const response = await fetch('/api/add-event', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    appDiv.innerHTML = `<h1 style="color: #34c759; text-align: center;">✅ Enregistré !</h1><p style="text-align: center;">La séance a été ajoutée à l'agenda.</p>`;
+                } else {
+                    throw new Error(data.error || "Erreur serveur inconnue");
+                }
+            } catch (err) {
+                alert(`Erreur : ${err.message}`);
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Créer la séance";
+            }
+        });
+    </script>
+</body>
+</html>
